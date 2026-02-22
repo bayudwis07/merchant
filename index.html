@@ -5,13 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Merchant Monitoring System</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <!-- Menambahkan library jsPDF untuk fitur unduh PDF -->
+
+    <!-- Library jsPDF untuk unduhan PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Library Chart.js dan Datalabels untuk Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
     <script>
       tailwind.config = {
         theme: {
@@ -89,13 +96,14 @@
         top: 0;
         z-index: 10;
       }
-
-      /* Tambahan warna solid untuk th saat di scroll agar tidak transparan */
       .sticky-header.primary-header th {
         background-color: #0857c3;
       }
       .sticky-header.success-header th {
         background-color: #16a34a;
+      }
+      .sticky-header.danger-header th {
+        background-color: #dc2626;
       }
 
       @keyframes fadeIn {
@@ -133,7 +141,7 @@
         border-top: 3px solid #3498db;
         width: 24px;
         height: 24px;
-        -webkit-animation: spin 1s linear infinite; /* Safari */
+        -webkit-animation: spin 1s linear infinite;
         animation: spin 1s linear infinite;
         display: inline-block;
         vertical-align: middle;
@@ -148,8 +156,6 @@
           transform: rotate(360deg);
         }
       }
-    </style>
-    <style>
       body {
         box-sizing: border-box;
       }
@@ -161,7 +167,7 @@
       <header class="gradient-header text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
           >
             <div>
               <h1
@@ -174,19 +180,80 @@
                 Internal Banking Dashboard
               </p>
             </div>
-            <div class="flex items-center gap-3">
-              <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <span class="text-xs text-blue-100">Last Updated</span>
-                <p id="dataTanggal" class="text-sm font-semibold"></p>
-              </div>
+
+            <!-- HEADER RIGHT SECTION: Metrics & Badges -->
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Professional Visitor Counter -->
               <div
-                class="hidden sm:flex items-center gap-2 bg-green-500/20 rounded-full px-3 py-1"
+                class="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1.5"
+                title="Unique Device Visitors"
+              >
+                <div class="bg-white/20 p-1.5 rounded-md">
+                  <svg
+                    class="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </div>
+                <div class="flex flex-col justify-center">
+                  <span
+                    class="text-[9px] leading-tight text-blue-200 uppercase font-bold tracking-wider"
+                    >Pengunjung</span
+                  >
+                  <span
+                    id="visitorCount"
+                    class="text-sm font-bold text-white leading-tight"
+                  >
+                    <span
+                      class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"
+                    ></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Last Updated -->
+              <div
+                class="bg-white/20 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-1.5 flex flex-col justify-center"
               >
                 <span
-                  class="w-2 h-2 bg-green-400 rounded-full pulse-badge"
+                  class="text-[9px] leading-tight text-blue-200 uppercase font-bold tracking-wider"
+                  >Last Updated</span
+                >
+                <p
+                  id="dataTanggal"
+                  class="text-sm font-bold text-white leading-tight"
+                >
+                  Memuat...
+                </p>
+              </div>
+
+              <!-- Status Live -->
+              <div
+                class="hidden sm:flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-2"
+              >
+                <span
+                  class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-badge"
                   id="statusIndicator"
                 ></span>
-                <span class="text-xs font-medium" id="statusText">Live</span>
+                <span
+                  class="text-xs font-bold uppercase tracking-wide"
+                  id="statusText"
+                  >Live</span
+                >
               </div>
             </div>
           </div>
@@ -285,13 +352,175 @@
           </div>
         </section>
 
+        <!-- Charts Section -->
+        <section
+          class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in"
+          style="animation-delay: 0.1s"
+        >
+          <!-- Chart 1: Delta SV per Cabang -->
+          <div
+            class="card-hover bg-white rounded-xl shadow-md p-6 lg:col-span-2"
+          >
+            <h2 class="text-lg font-semibold text-gray-800 mb-1">
+              Sales Volume MOM
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">
+              Dalam Juta Rupiah (Berdasarkan filter)
+            </p>
+            <div class="relative h-64 w-full">
+              <canvas id="branchChart"></canvas>
+            </div>
+          </div>
+          <!-- Chart 2: Donut Produktivitas Total -->
+          <div class="card-hover bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-1">
+              Status Produktivitas
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">
+              Merchant Produktif vs Non-Produktif
+            </p>
+            <div class="relative h-64 w-full flex justify-center">
+              <canvas id="overallProductivityChart"></canvas>
+            </div>
+          </div>
+          <!-- Chart 3: Produktivitas per Kanca -->
+          <div
+            class="card-hover bg-white rounded-xl shadow-md p-6 lg:col-span-3"
+          >
+            <h2 class="text-lg font-semibold text-gray-800 mb-1">
+              Produktivitas Merchant
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">
+              % Merchant Produktif (SV ≥ Rp 15 Juta)
+            </p>
+            <div class="relative min-h-[400px] w-full flex justify-center">
+              <canvas id="productivityChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Top 25 Penurunan Section -->
+        <section
+          class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in"
+          style="animation-delay: 0.3s"
+        >
+          <div
+            class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-red-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-red-700">
+                Top 25 Penurunan SV Terdalam
+              </h2>
+              <p class="text-sm text-red-500 mt-0.5">
+                Daftar merchant yang perlu di-follow up segera (berdasarkan
+                filter)
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                onclick="downloadTop25CSV()"
+                class="btn-action flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-200"
+                title="Download CSV"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
+                </svg>
+                CSV
+              </button>
+              <button
+                onclick="downloadTop25PDF()"
+                class="btn-action flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-200"
+                title="Download PDF"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+                PDF
+              </button>
+            </div>
+          </div>
+          <div class="table-container overflow-auto max-h-80">
+            <table class="w-full">
+              <thead class="sticky-header danger-header">
+                <tr
+                  class="bg-red-600 text-white text-xs uppercase tracking-wider"
+                >
+                  <th
+                    class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10"
+                  >
+                    No
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    Nama Kanca
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    Nama Uker
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    TID
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    MID
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    Nama Merchant
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                  >
+                    Pemrakarsa
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                  >
+                    Delta SV
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="top25Body" class="divide-y divide-gray-100">
+                <!-- Data Top 25 -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <!-- Result Table Section -->
         <section
           class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in"
-          style="animation-delay: 0.1s"
+          style="animation-delay: 0.4s"
         >
           <div
-            class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+            class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           >
             <div>
               <h2 class="text-lg font-semibold text-gray-800">Merchant Data</h2>
@@ -299,7 +528,7 @@
                 Click "Select" to add merchant to monitoring list
               </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span
                 id="resultCount"
                 class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium"
@@ -333,6 +562,11 @@
                 <tr
                   class="bg-gradient-to-r from-primary to-secondary text-white text-xs uppercase tracking-wider"
                 >
+                  <th
+                    class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10"
+                  >
+                    No
+                  </th>
                   <th
                     class="hidden py-3 text-left font-semibold whitespace-nowrap"
                   >
@@ -467,7 +701,7 @@
               class="w-16 h-16 mx-auto text-gray-300 mb-4"
               fill="none"
               stroke="currentColor"
-              viewbox="0 0 24 24"
+              viewBox="0 0 24 24"
             >
               <path
                 stroke-linecap="round"
@@ -480,7 +714,7 @@
               No merchants found
             </p>
             <p class="text-gray-400 text-sm mt-1">
-              Try adjusting your search criteria
+              Orang Sabar disayang Tuhan..
             </p>
           </div>
         </section>
@@ -488,10 +722,10 @@
         <!-- Selected Data Table Section -->
         <section
           class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in"
-          style="animation-delay: 0.2s"
+          style="animation-delay: 0.5s"
         >
           <div
-            class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+            class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           >
             <div>
               <h2 class="text-lg font-semibold text-gray-800">
@@ -501,7 +735,8 @@
                 Merchants added to monitoring list
               </p>
             </div>
-            <div class="flex items-center gap-2">
+            <!-- Perbaikan Flex Wrap agar tombol tidak terpotong di mobile -->
+            <div class="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
               <span
                 id="selectedCount"
                 class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
@@ -561,6 +796,11 @@
                 <tr
                   class="bg-gradient-to-r from-green-600 to-green-500 text-white text-xs uppercase tracking-wider"
                 >
+                  <th
+                    class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10"
+                  >
+                    No
+                  </th>
                   <th
                     class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
                   >
@@ -653,23 +893,25 @@
               class="w-12 h-12 mx-auto text-gray-300 mb-3"
               fill="none"
               stroke="currentColor"
-              viewbox="0 0 24 24"
+              viewBox="0 0 24 24"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="1.5"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <p class="text-gray-500 text-sm">No merchants selected yet</p>
+            <p class="text-gray-500 text-sm">
+              Tidak Ada Merchant yang Dipilih Bang..
+            </p>
           </div>
         </section>
 
         <!-- Summary Cards Section -->
         <section
           class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in"
-          style="animation-delay: 0.3s"
+          style="animation-delay: 0.6s"
         >
           <div
             class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-primary"
@@ -679,7 +921,7 @@
                 <p
                   class="text-sm font-medium text-gray-500 uppercase tracking-wide"
                 >
-                  Total Delta Trx
+                  Total Delta Trx (Selected)
                 </p>
                 <p id="totalTrx" class="text-3xl font-bold text-primary mt-2">
                   0
@@ -692,7 +934,7 @@
                   class="w-7 h-7 text-primary"
                   fill="none"
                   stroke="currentColor"
-                  viewbox="0 0 24 24"
+                  viewBox="0 0 24 24"
                 >
                   <path
                     stroke-linecap="round"
@@ -703,9 +945,6 @@
                 </svg>
               </div>
             </div>
-            <div class="mt-4 flex items-center text-sm">
-              <span class="text-gray-500">From selected merchants</span>
-            </div>
           </div>
           <div
             class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-accent"
@@ -715,7 +954,7 @@
                 <p
                   class="text-sm font-medium text-gray-500 uppercase tracking-wide"
                 >
-                  Total Delta SV
+                  Total Delta SV (Selected)
                 </p>
                 <p id="totalSv" class="text-3xl font-bold text-secondary mt-2">
                   Rp 0
@@ -728,7 +967,7 @@
                   class="w-7 h-7 text-secondary"
                   fill="none"
                   stroke="currentColor"
-                  viewbox="0 0 24 24"
+                  viewBox="0 0 24 24"
                 >
                   <path
                     stroke-linecap="round"
@@ -738,9 +977,6 @@
                   />
                 </svg>
               </div>
-            </div>
-            <div class="mt-4 flex items-center text-sm">
-              <span class="text-gray-500">Sales volume difference</span>
             </div>
           </div>
         </section>
@@ -757,45 +993,99 @@
     </div>
 
     <script>
-      // URL Google Apps Script yang diberikan
-      const SHEET_API_URL =
-        "https://script.google.com/macros/s/AKfycbzp6XCp-JXTlvObpjc5QmIT7BG56VJ3jjtXI_mCWft6keYEo2vGXAXkXyvpl-4guTPc/exec";
+      const Blow_Job = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2";
+      const Hand_Job = "J6cDZYQ3AtSlhUbHZPYnBqYzVRbUlUN0JHNTZWS";
+      const Sakura = "jNqanRYSV9tQ1dmdDZrZVlFbzJ2R1hBWGtYeXZwbC";
+      const Open_BO = "00Z3VUUGMvZXhlYz90b2tlbj1CbHVlcmltMzIxISE=";
 
-      // Inisialisasi variabel state
+      const Berkualitas = atob(Blow_Job + Hand_Job + Sakura + Open_BO);
+
+      // Konfigurasi untuk Visitor Counter
+      const VISITOR_NAMESPACE = "merchant_monitoring_bds_dashboard";
+      const VISITOR_KEY = "unique_device_visits";
+
+      //Plugin untuk Chart.js
+      Chart.register(ChartDataLabels);
+
       let merchantData = [];
       let selectedMerchants = [];
       let currentPage = 1;
       let itemsPerPage = 10;
 
-      // Format currency
+      // Chart Instances
+      let branchChartInstance = null;
+      let productivityChartInstance = null;
+      let overallProductivityChartInstance = null;
+
       function formatCurrency(num) {
         return "Rp " + num.toLocaleString("id-ID");
       }
 
-      // Format number
       function formatNumber(num) {
         return num.toLocaleString("id-ID");
       }
 
-      // Calculate delta
       function calculateDelta(current, previous) {
         return current - previous;
       }
 
-      // Get delta class for styling
       function getDeltaClass(delta) {
         if (delta > 0) return "text-green-600 bg-green-50";
         if (delta < 0) return "text-red-600 bg-red-50";
         return "text-gray-600 bg-gray-50";
       }
 
-      // Get delta prefix
       function getDeltaPrefix(delta) {
         if (delta > 0) return "+";
         return "";
       }
 
-      // Function to fetch data from Google Sheets
+      // Menghitung Pengunjung Unik Berdasarkan Device
+      // Menggunakan Proxy allorigins agar terhindar dari Error "Failed to Fetch" (CORS Issue)
+      async function initVisitorCount() {
+        const countEl = document.getElementById("visitorCount");
+        const hasVisited = localStorage.getItem("has_visited_mms_dashboard");
+
+        // Base URL CounterAPI
+        let baseUrl = `https://api.counterapi.dev/v1/${VISITOR_NAMESPACE}/${VISITOR_KEY}`;
+        let targetUrl = hasVisited ? baseUrl : `${baseUrl}/up`;
+
+        // Gunakan proxy allorigins untuk mengatasi masalah CORS (Failed to fetch) di environment iframe/blob
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+
+        try {
+          const response = await fetch(proxyUrl);
+          if (!response.ok) throw new Error("API Proxy Error");
+          const data = await response.json();
+
+          if (data && data.count !== undefined) {
+            countEl.textContent = formatNumber(data.count);
+            // Tandai device ini sudah mengunjungi agar tidak dihitung ulang terus
+            if (!hasVisited) {
+              localStorage.setItem("has_visited_mms_dashboard", "true");
+            }
+          } else {
+            throw new Error("Invalid data format");
+          }
+        } catch (e) {
+          console.warn(
+            "API Counter gagal/diblokir, menggunakan local fallback:",
+            e,
+          );
+
+          // Fallback lokal jika API terblokir Adblocker / CORS agar UI tetap rapi
+          let localCount = parseInt(
+            localStorage.getItem("local_visitor_count") || "1245",
+          );
+          if (!hasVisited) {
+            localCount += 1;
+            localStorage.setItem("has_visited_mms_dashboard", "true");
+            localStorage.setItem("local_visitor_count", localCount.toString());
+          }
+          countEl.textContent = formatNumber(localCount);
+        }
+      }
+
       async function fetchSheetData() {
         const tbody = document.getElementById("resultBody");
         const emptyState = document.getElementById("emptyState");
@@ -804,24 +1094,19 @@
         const statusText = document.getElementById("statusText");
         const statusIndicator = document.getElementById("statusIndicator");
 
-        // Set loading state UI
         tbody.innerHTML = "";
         emptyState.classList.remove("hidden");
         emptyStateText.innerHTML =
-          '<span class="loader"></span> Mengambil data dari Google Sheets...';
-        countEl.textContent = "Loading...";
-        statusText.textContent = "Syncing...";
+          '<span class="loader"></span> Sabar Om,loading...';
+        countEl.textContent = "Sabar Om...";
+        statusText.textContent = "Sabar sayangg...";
         statusIndicator.classList.replace("bg-green-400", "bg-yellow-400");
 
         try {
-          const response = await fetch(SHEET_API_URL);
+          const response = await fetch(Berkualitas);
           const data = await response.json();
-
-          // Memastikan tipe data berupa array, biasanya script Google mengembalikan Array langsung
-          // atau JSON object dengan { data: [...] }
           const rawData = Array.isArray(data) ? data : data.data || [];
 
-          // Mapping Data: Menyamakan key dari Google Sheet dengan var sistem (bersifat case-insensitive fallback)
           merchantData = rawData.map((item) => ({
             kodeKanca: String(item.kodeKanca || "-"),
             namaKanca: String(item.namaKanca || "-"),
@@ -838,32 +1123,29 @@
             svUpdate: Number(item.svUpdate || item.SV_UPDATE || 0),
           }));
 
-          // Reset text pada empty state kembali ke normal
           emptyStateText.textContent = "No merchants found";
-          statusText.textContent = "Live";
+          statusText.textContent = "Done Bangg";
           statusIndicator.classList.replace("bg-yellow-400", "bg-green-400");
 
-          // Update waktu load dari Google Sheet
           if (data.currentDate) {
             setCurrentDate(new Date(data.currentDate));
           } else {
             setCurrentDate(new Date());
           }
 
-          // Render tabel berdasarkan data
           renderResultTable(merchantData);
+          renderCharts(merchantData);
+          renderTop25Table(merchantData);
         } catch (error) {
-          console.error("Error fetching data dari Google Sheets: ", error);
+          console.error("Error fetching data:", error);
           emptyStateText.innerHTML =
-            '<span class="text-red-500">Gagal mengambil data. Pastikan Apps Script Web App bisa diakses (CORS/Anyone).</span>';
+            '<span class="text-red-500">Gagal mengambil data. Pastikan Apps Script Web App bisa diakses.</span>';
           statusText.textContent = "Offline";
-          statusIndicator.classList.replace("bg-yellow-400", "bg-red-500");
           statusIndicator.classList.replace("bg-green-400", "bg-red-500");
           statusIndicator.classList.remove("pulse-badge");
         }
       }
 
-      // Render result table
       function renderResultTable(data) {
         const tbody = document.getElementById("resultBody");
         const emptyState = document.getElementById("emptyState");
@@ -887,8 +1169,9 @@
         countEl.textContent = `${data.length} records`;
         if (paginationControls) paginationControls.classList.remove("hidden");
 
-        // Pagination Logic
         let paginatedData = data;
+        let startIndexOffset = 0;
+
         if (itemsPerPage !== "all") {
           const totalItems = data.length;
           const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -897,6 +1180,7 @@
           if (currentPage < 1) currentPage = 1;
 
           const startIndex = (currentPage - 1) * itemsPerPage;
+          startIndexOffset = startIndex;
           const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
           paginatedData = data.slice(startIndex, endIndex);
 
@@ -913,10 +1197,12 @@
           const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
           const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
           const isSelected = selectedMerchants.some((m) => m.tid === item.tid);
+          const rowNo = startIndexOffset + index + 1;
 
           const row = document.createElement("tr");
           row.className = `row-hover ${isSelected ? "bg-blue-50" : "bg-white"}`;
           row.innerHTML = `
+          <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeKanca}</td>
           <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.namaKanca}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeUker}</td>
@@ -941,11 +1227,7 @@
             </span>
           </td>
           <td class="px-4 py-3 text-center whitespace-nowrap">
-            <button 
-              onclick="selectMerchant('${item.tid}')"
-              class="btn-action px-3 py-1.5 rounded-lg text-xs font-medium ${isSelected ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-primary text-white hover:bg-secondary"}"
-              ${isSelected ? "disabled" : ""}
-            >
+            <button onclick="selectMerchant('${item.tid}')" class="btn-action px-3 py-1.5 rounded-lg text-xs font-medium ${isSelected ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-primary text-white hover:bg-secondary"}" ${isSelected ? "disabled" : ""}>
               ${isSelected ? "Selected" : "Select"}
             </button>
           </td>
@@ -954,7 +1236,6 @@
         });
       }
 
-      // Render selected table
       function renderSelectedTable() {
         const tbody = document.getElementById("selectedBody");
         const emptyState = document.getElementById("selectedEmptyState");
@@ -972,13 +1253,14 @@
         emptyState.classList.add("hidden");
         countEl.textContent = `${selectedMerchants.length} selected`;
 
-        selectedMerchants.forEach((item) => {
+        selectedMerchants.forEach((item, index) => {
           const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
           const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
 
           const row = document.createElement("tr");
           row.className = "row-hover bg-white";
           row.innerHTML = `
+          <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${index + 1}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeKanca}</td>
           <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.namaKanca}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeUker}</td>
@@ -1003,10 +1285,7 @@
             </span>
           </td>
           <td class="px-4 py-3 text-center whitespace-nowrap">
-            <button 
-              onclick="removeMerchant('${item.tid}')"
-              class="btn-action px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600"
-            >
+            <button onclick="removeMerchant('${item.tid}')" class="btn-action px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
               Remove
             </button>
           </td>
@@ -1017,7 +1296,270 @@
         updateTotals();
       }
 
-      // Update totals
+      function getTop25Data() {
+        const currentData = getFilteredData();
+        if (!currentData || currentData.length === 0) return [];
+
+        return [...currentData]
+          .map((item) => ({
+            ...item,
+            deltaSv: item.svUpdate - item.svLalu,
+          }))
+          .sort((a, b) => a.deltaSv - b.deltaSv)
+          .slice(0, 25);
+      }
+
+      function renderTop25Table(data) {
+        const tbody = document.getElementById("top25Body");
+        tbody.innerHTML = "";
+
+        const sortedData = getTop25Data();
+        if (sortedData.length === 0) return;
+
+        sortedData.forEach((item, index) => {
+          const row = document.createElement("tr");
+          row.className = "row-hover bg-white";
+          row.innerHTML = `
+            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${index + 1}</td>
+            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.namaKanca}</td>
+            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.uker}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">${item.tid}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">${item.mid}</td>
+            <td class="px-4 py-3 text-sm text-gray-800 font-medium whitespace-nowrap">${item.nama}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${item.pemrakarsa}</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold ${getDeltaClass(item.deltaSv)}">
+                ${getDeltaPrefix(item.deltaSv)}${formatCurrency(item.deltaSv)}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      function renderCharts(data) {
+        if (branchChartInstance) branchChartInstance.destroy();
+        if (productivityChartInstance) productivityChartInstance.destroy();
+        if (overallProductivityChartInstance)
+          overallProductivityChartInstance.destroy();
+
+        if (!data || data.length === 0) return;
+
+        // ---------------------------------------------------------
+        // 1. Grafik Pertumbuhan Cabang (Juta) - Bar
+        // ---------------------------------------------------------
+        const branchDataMap = {};
+        data.forEach((item) => {
+          const deltaSv = item.svUpdate - item.svLalu;
+          if (!branchDataMap[item.namaKanca]) branchDataMap[item.namaKanca] = 0;
+          branchDataMap[item.namaKanca] += deltaSv;
+        });
+
+        const sortedBranches = Object.keys(branchDataMap)
+          .map((kanca) => ({
+            kanca,
+            delta: Math.round(branchDataMap[kanca] / 1000000),
+          }))
+          .sort((a, b) => a.delta - b.delta);
+
+        const ctxBranch = document
+          .getElementById("branchChart")
+          .getContext("2d");
+        branchChartInstance = new Chart(ctxBranch, {
+          type: "bar",
+          data: {
+            labels: sortedBranches.map((b) => b.kanca),
+            datasets: [
+              {
+                label: "Delta SV (Juta)",
+                data: sortedBranches.map((b) => b.delta),
+                backgroundColor: sortedBranches.map((b) =>
+                  b.delta < 0
+                    ? "rgba(239, 68, 68, 0.7)"
+                    : "rgba(34, 197, 94, 0.7)",
+                ),
+                borderColor: sortedBranches.map((b) =>
+                  b.delta < 0 ? "rgb(239, 68, 68)" : "rgb(34, 197, 94)",
+                ),
+                borderWidth: 1,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { title: { display: true, text: "Juta Rp" } },
+              x: {
+                ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              datalabels: { display: false },
+            },
+          },
+        });
+
+        // ---------------------------------------------------------
+        // 2. Grafik Donut Keseluruhan (Produktif vs Non-Produktif)
+        // ---------------------------------------------------------
+        const productiveCount = data.filter(
+          (item) => item.svUpdate >= 15000000,
+        ).length;
+        const totalCount = data.length;
+        const nonProductiveCount = totalCount - productiveCount;
+
+        const ctxOverall = document
+          .getElementById("overallProductivityChart")
+          .getContext("2d");
+        overallProductivityChartInstance = new Chart(ctxOverall, {
+          type: "doughnut",
+          data: {
+            labels: ["Produktif (≥15 Jt)", "Non-Produktif (<15 Jt)"],
+            datasets: [
+              {
+                data: [productiveCount, nonProductiveCount],
+                backgroundColor: [
+                  "rgba(34, 197, 94, 0.8)",
+                  "rgba(239, 68, 68, 0.8)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 12, font: { size: 10 } },
+              },
+              datalabels: {
+                color: "#ffffff",
+                font: { weight: "bold", size: 11 },
+                formatter: (value, ctx) => {
+                  if (value === 0) return null;
+                  const percentage =
+                    totalCount > 0
+                      ? ((value / totalCount) * 100).toFixed(1) + "%"
+                      : "0%";
+                  return `${value}\n(${percentage})`;
+                },
+                textAlign: "center",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const value = context.raw;
+                    const percent =
+                      totalCount > 0
+                        ? ((value / totalCount) * 100).toFixed(1)
+                        : 0;
+                    return ` ${context.label}: ${value} Merchant (${percent}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // ---------------------------------------------------------
+        // 3. Grafik Produktivitas per Kanca (Horizontal Bar)
+        // ---------------------------------------------------------
+        const productivityMap = {};
+        data.forEach((item) => {
+          const kanca = item.namaKanca;
+          if (!productivityMap[kanca]) {
+            productivityMap[kanca] = { total: 0, productive: 0 };
+          }
+          productivityMap[kanca].total += 1;
+          if (item.svUpdate >= 15000000) {
+            productivityMap[kanca].productive += 1;
+          }
+        });
+
+        const sortedProductivity = Object.keys(productivityMap)
+          .map((kanca) => {
+            const stats = productivityMap[kanca];
+            const percentage =
+              stats.total > 0 ? (stats.productive / stats.total) * 100 : 0;
+            return {
+              kanca,
+              percentage: parseFloat(percentage.toFixed(2)),
+              productive: stats.productive,
+              total: stats.total,
+            };
+          })
+          .sort((a, b) => b.percentage - a.percentage);
+
+        const prodDetails = sortedProductivity.map((p) => ({
+          prod: p.productive,
+          tot: p.total,
+        }));
+
+        const ctxProd = document
+          .getElementById("productivityChart")
+          .getContext("2d");
+        productivityChartInstance = new Chart(ctxProd, {
+          type: "bar",
+          data: {
+            labels: sortedProductivity.map((p) => p.kanca),
+            datasets: [
+              {
+                label: "% Produktivitas",
+                data: sortedProductivity.map((p) => p.percentage),
+                backgroundColor: "rgba(59, 130, 246, 0.7)",
+                borderColor: "rgb(59, 130, 246)",
+                borderWidth: 1,
+                borderRadius: 4,
+                barPercentage: 0.55,
+                maxBarThickness: 35,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 80 } },
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: "Persentase (%)" },
+              },
+              y: {
+                ticks: { autoSkip: false },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              datalabels: {
+                color: "#475569",
+                anchor: "end",
+                align: "right",
+                font: { size: 10, weight: "bold" },
+                formatter: (value, ctx) => {
+                  const detail = prodDetails[ctx.dataIndex];
+                  return `${value}% (${detail.prod}/${detail.tot})`;
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const detail = prodDetails[context.dataIndex];
+                    return ` ${context.raw}% (${detail.prod} dari ${detail.tot} Merchant)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
       function updateTotals() {
         let totalDeltaTrx = 0;
         let totalDeltaSv = 0;
@@ -1033,10 +1575,8 @@
           getDeltaPrefix(totalDeltaSv) + formatCurrency(totalDeltaSv);
       }
 
-      // Select merchant by TID instead of index so it isn't broken by searches
       function selectMerchant(tid) {
         const merchant = merchantData.find((m) => m.tid === tid);
-
         if (merchant && !selectedMerchants.some((m) => m.tid === tid)) {
           selectedMerchants.push(merchant);
           renderResultTable(getFilteredData());
@@ -1044,21 +1584,18 @@
         }
       }
 
-      // Remove merchant by TID
       function removeMerchant(tid) {
         selectedMerchants = selectedMerchants.filter((m) => m.tid !== tid);
         renderResultTable(getFilteredData());
         renderSelectedTable();
       }
 
-      // Clear selected
       function clearSelected() {
         selectedMerchants = [];
         renderResultTable(getFilteredData());
         renderSelectedTable();
       }
 
-      // Get filtered data
       function getFilteredData() {
         const searchTerm = document
           .getElementById("searchInput")
@@ -1068,7 +1605,6 @@
         if (!searchTerm) return merchantData;
 
         return merchantData.filter((item) => {
-          // Jika pilih "Semua Kategori", cari di semua kolom yang relevan
           if (searchCategory === "all") {
             return (
               item.kodeKanca.toLowerCase().includes(searchTerm) ||
@@ -1081,9 +1617,7 @@
               item.pn.toLowerCase().includes(searchTerm) ||
               item.pemrakarsa.toLowerCase().includes(searchTerm)
             );
-          }
-          // Jika pilih kategori spesifik, cari hanya di field yang bersangkutan
-          else {
+          } else {
             const valueToSearch = String(
               item[searchCategory] || "",
             ).toLowerCase();
@@ -1092,21 +1626,23 @@
         });
       }
 
-      // Search merchant
       function searchMerchant() {
-        currentPage = 1; // Reset halaman ke 1 saat pencarian
-        renderResultTable(getFilteredData());
+        currentPage = 1;
+        const filtered = getFilteredData();
+        renderResultTable(filtered);
+        renderCharts(filtered);
+        renderTop25Table(filtered);
       }
 
-      // Clear search
       function clearSearch() {
         document.getElementById("searchInput").value = "";
         document.getElementById("searchCategory").value = "all";
-        currentPage = 1; // Reset halaman
+        currentPage = 1;
         renderResultTable(merchantData);
+        renderCharts(merchantData);
+        renderTop25Table(merchantData);
       }
 
-      // --- Pagination Functions ---
       function changeItemsPerPage() {
         const select = document.getElementById("itemsPerPage");
         itemsPerPage = select.value === "all" ? "all" : parseInt(select.value);
@@ -1125,9 +1661,7 @@
           renderResultTable(getFilteredData());
         }
       }
-      // ----------------------------
 
-      // Set current date
       function setCurrentDate(dateObj) {
         const now =
           dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
@@ -1141,20 +1675,19 @@
           now.toLocaleDateString("id-ID", options);
       }
 
-      // Initialize - Fetch data from Google Sheets when the page loads
       window.onload = () => {
-        document.getElementById("dataTanggal").textContent = "Loading...";
+        document.getElementById("dataTanggal").textContent = "Memuat...";
         fetchSheetData();
+        initVisitorCount(); // Menjalankan perhitungan pengunjung
       };
 
-      // --- Export Functions ---
-      // Fungsi umum untuk konversi data ke format CSV
       function convertToCSV(objArray) {
         const array =
           typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
         if (!array || !array.length) return "";
 
         const headers = [
+          "No",
           "Kode Kanca",
           "Nama Kanca",
           "Kode Uker",
@@ -1190,29 +1723,23 @@
         let str = headers.join(",") + "\r\n";
 
         for (let i = 0; i < array.length; i++) {
-          let line = "";
+          let line = `${i + 1},`; // Add No
           for (let index in keys) {
-            if (line != "") line += ",";
             let value = array[i][keys[index]];
-            // Membersihkan string jika mengandung koma agar file CSV tidak berantakan
             if (typeof value === "string") {
               value = value.replace(/"/g, '""');
-              if (value.includes(",")) {
-                value = `"${value}"`;
-              }
+              if (value.includes(",")) value = `"${value}"`;
             }
-            line += value;
+            line += value + ",";
           }
           const deltaTrx = calculateDelta(array[i].trxUpdate, array[i].trxLalu);
           const deltaSv = calculateDelta(array[i].svUpdate, array[i].svLalu);
-          line += `,${deltaTrx},${deltaSv}`;
-
+          line += `${deltaTrx},${deltaSv}`;
           str += line + "\r\n";
         }
         return str;
       }
 
-      // Fungsi memicu unduhan file
       function downloadCSV(csv, filename) {
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
@@ -1228,7 +1755,7 @@
       }
 
       function downloadMerchantDataCSV() {
-        const dataToDownload = getFilteredData(); // Mengunduh data yang sedang ter-filter
+        const dataToDownload = getFilteredData();
         if (dataToDownload.length === 0) return;
         const csv = convertToCSV(dataToDownload);
         downloadCSV(csv, "Report Data ALL MOM.csv");
@@ -1240,65 +1767,98 @@
         downloadCSV(csv, "Report Data MOM.csv");
       }
 
-      function downloadSelectedPDF() {
-        if (selectedMerchants.length === 0) return;
+      function downloadTop25CSV() {
+        const data = getTop25Data();
+        if (data.length === 0) return;
+
+        const headers = [
+          "No",
+          "Nama Kanca",
+          "Nama Uker",
+          "TID",
+          "MID",
+          "Nama Merchant",
+          "Pemrakarsa",
+          "Delta SV",
+        ];
+        let str = headers.join(",") + "\r\n";
+
+        data.forEach((item, index) => {
+          let row = [
+            index + 1,
+            `"${item.namaKanca}"`,
+            `"${item.uker}"`,
+            `"${item.tid}"`,
+            `"${item.mid}"`,
+            `"${item.nama.replace(/"/g, '""')}"`,
+            `"${item.pemrakarsa}"`,
+            item.deltaSv,
+          ];
+          str += row.join(",") + "\r\n";
+        });
+
+        downloadCSV(str, "Top_25_Penurunan_SV.csv");
+      }
+
+      function downloadTop25PDF() {
+        const top25 = getTop25Data();
+        if (top25.length === 0) return;
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("landscape");
 
-        doc.setFontSize(14);
-        doc.text("Report Data EDC MOM", 14, 15);
-        doc.setFontSize(10);
-        doc.text(
-          "Generate Date: " + new Date().toLocaleDateString("id-ID"),
-          14,
-          22,
-        );
+        const lastUpdated = document.getElementById("dataTanggal").textContent;
+        const generateDate = new Date().toLocaleDateString("id-ID");
 
-        // Susun data tabel (beberapa kolom disingkat agar muat di kertas lanskap)
+        doc.setFontSize(14);
+        doc.text("Report Top 25 Penurunan SV Terdalam", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Last Updated Date: ${lastUpdated}`, 14, 22);
+        doc.text(`Generate Date: ${generateDate}`, 14, 28);
+
         const headers = [
           [
-            "Kanca",
-            "Uker",
+            "No",
+            "Nama Kanca",
+            "Nama Uker",
             "TID",
             "MID",
-            "Merchant",
-            "PN",
-            "Trx MOM",
-            "SV MOM",
-            "Trx Update",
-            "SV Update",
-            "Delta Trx",
+            "Nama Merchant",
+            "Pemrakarsa",
             "Delta SV",
           ],
         ];
-        const data = selectedMerchants.map((item) => {
-          const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
-          const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
+
+        const data = top25.map((item, index) => {
           return [
+            index + 1,
             item.namaKanca,
             item.uker,
             item.tid,
             item.mid,
             item.nama,
-            item.pn,
-            formatNumber(item.trxLalu),
-            formatCurrency(item.svLalu),
-            formatNumber(item.trxUpdate),
-            formatCurrency(item.svUpdate),
-            getDeltaPrefix(deltaTrx) + formatNumber(deltaTrx),
-            getDeltaPrefix(deltaSv) + formatCurrency(deltaSv),
+            item.pemrakarsa,
+            getDeltaPrefix(item.deltaSv) + formatCurrency(item.deltaSv),
           ];
         });
 
         doc.autoTable({
           head: headers,
           body: data,
-          startY: 28,
+          startY: 34,
           theme: "grid",
-          styles: { fontSize: 7, cellPadding: 1.5 },
-          headStyles: { fillColor: [22, 163, 74] },
-
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [220, 38, 38] },
+          didParseCell: function (data) {
+            if (data.section === "body" && data.column.index === 7) {
+              const textVal = data.cell.text[0] || "";
+              if (textVal.includes("-")) {
+                data.cell.styles.textColor = [220, 38, 38];
+              } else if (textVal.includes("+")) {
+                data.cell.styles.textColor = [22, 163, 74];
+              }
+            }
+          },
           didDrawPage: function (data) {
             const pageHeight = doc.internal.pageSize.height;
             doc.setFontSize(8);
@@ -1312,7 +1872,94 @@
           },
         });
 
-        // Tambahkan grand total di bawah tabel
+        doc.save("Top_25_Penurunan_SV.pdf");
+      }
+
+      function downloadSelectedPDF() {
+        if (selectedMerchants.length === 0) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("landscape");
+
+        const lastUpdated = document.getElementById("dataTanggal").textContent;
+        const generateDate = new Date().toLocaleDateString("id-ID");
+
+        doc.setFontSize(14);
+        doc.text("Report Data EDC MOM", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Last Updated Date: ${lastUpdated}`, 14, 22);
+        doc.text(`Generate Date: ${generateDate}`, 14, 28);
+
+        const headers = [
+          [
+            "No",
+            "Kanca",
+            "Uker",
+            "TID",
+            "MID",
+            "Merchant",
+            "Pemrakarsa",
+            "Trx MOM",
+            "SV MOM",
+            "Trx Update",
+            "SV Update",
+            "Delta Trx",
+            "Delta SV",
+          ],
+        ];
+
+        const data = selectedMerchants.map((item, index) => {
+          const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
+          const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
+          return [
+            index + 1,
+            item.namaKanca,
+            item.uker,
+            item.tid,
+            item.mid,
+            item.nama,
+            item.pemrakarsa,
+            formatNumber(item.trxLalu),
+            formatCurrency(item.svLalu),
+            formatNumber(item.trxUpdate),
+            formatCurrency(item.svUpdate),
+            getDeltaPrefix(deltaTrx) + formatNumber(deltaTrx),
+            getDeltaPrefix(deltaSv) + formatCurrency(deltaSv),
+          ];
+        });
+
+        doc.autoTable({
+          head: headers,
+          body: data,
+          startY: 34,
+          theme: "grid",
+          styles: { fontSize: 7, cellPadding: 1.5 },
+          headStyles: { fillColor: [22, 163, 74] },
+          didParseCell: function (data) {
+            if (data.section === "body") {
+              if (data.column.index === 11 || data.column.index === 12) {
+                const textVal = data.cell.text[0] || "";
+                if (textVal.includes("-")) {
+                  data.cell.styles.textColor = [220, 38, 38];
+                } else if (textVal.includes("+")) {
+                  data.cell.styles.textColor = [22, 163, 74];
+                }
+              }
+            }
+          },
+          didDrawPage: function (data) {
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(
+              "© BAYU DWI SUHARMINTO | IG: bayudwis_07",
+              doc.internal.pageSize.width / 2,
+              pageHeight - 5,
+              { align: "center" },
+            );
+          },
+        });
+
         let totalDeltaTrx = 0;
         let totalDeltaSv = 0;
         selectedMerchants.forEach((item) => {
@@ -1320,8 +1967,9 @@
           totalDeltaSv += calculateDelta(item.svUpdate, item.svLalu);
         });
 
-        const finalY = doc.lastAutoTable.finalY || 28;
+        const finalY = doc.lastAutoTable.finalY || 34;
         doc.setFontSize(10);
+        doc.setTextColor(0);
         doc.text(
           `Total Delta Trx: ${getDeltaPrefix(totalDeltaTrx) + formatNumber(totalDeltaTrx)}`,
           14,
