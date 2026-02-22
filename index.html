@@ -106,6 +106,7 @@
         background-color: #dc2626;
       }
 
+      /* Animasi Utama */
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -119,6 +120,22 @@
 
       .animate-fade-in {
         animation: fadeIn 0.4s ease-out forwards;
+      }
+
+      /* Animasi Fade khusus untuk isi Table saat ganti Page */
+      .fade-in-table {
+        animation: fadeInTable 0.3s ease-out forwards;
+      }
+
+      @keyframes fadeInTable {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .pulse-badge {
@@ -243,7 +260,7 @@
 
               <!-- Status Live -->
               <div
-                class="hidden sm:flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-2"
+                class="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-2"
               >
                 <span
                   class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-badge"
@@ -331,7 +348,7 @@
               Clear
             </button>
             <button
-              onclick="fetchSheetData()"
+              onclick="handleRefresh()"
               class="btn-action px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-secondary flex items-center gap-2 whitespace-nowrap"
             >
               <svg
@@ -367,7 +384,7 @@
             <p class="text-xs text-gray-500 mb-4">
               Dalam Juta Rupiah (Berdasarkan filter)
             </p>
-            <div class="relative h-64 w-full">
+            <div class="relative min-h-[400px] w-full">
               <canvas id="branchChart"></canvas>
             </div>
           </div>
@@ -471,39 +488,81 @@
                     No
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'namaKanca')"
+                    data-table="top25"
                   >
                     Nama Kanca
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-namaKanca"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'uker')"
+                    data-table="top25"
                   >
                     Nama Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-uker"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'tid')"
+                    data-table="top25"
                   >
                     TID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-tid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'mid')"
+                    data-table="top25"
                   >
                     MID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-mid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'nama')"
+                    data-table="top25"
                   >
                     Nama Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-nama"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'pemrakarsa')"
+                    data-table="top25"
                   >
                     Pemrakarsa
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-pemrakarsa"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('top25', 'deltaSv')"
+                    data-table="top25"
                   >
                     Delta SV
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-top25-deltaSv"
+                    ></span>
                   </th>
                 </tr>
               </thead>
@@ -511,6 +570,45 @@
                 <!-- Data Top 25 -->
               </tbody>
             </table>
+          </div>
+          <!-- Pagination Controls Top 25 -->
+          <div
+            id="paginationControlsTop25"
+            class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-500">Show</span>
+              <select
+                id="itemsPerPageTop25"
+                onchange="changeItemsPerPage('Top25')"
+                class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white"
+              >
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="all">All</option>
+              </select>
+              <span class="text-sm text-gray-500">entries</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-500 mr-2" id="paginationInfoTop25"
+                >Showing 0 to 0 of 0</span
+              >
+              <button
+                onclick="prevPage('Top25')"
+                id="btnPrevTop25"
+                class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                Prev
+              </button>
+              <button
+                onclick="nextPage('Top25')"
+                id="btnNextTop25"
+                class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </section>
 
@@ -534,6 +632,27 @@
                 class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium"
                 >0 records</span
               >
+              <button
+                id="btnSelectAllToggle"
+                onclick="toggleSelectAll()"
+                class="btn-action flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
+                title="Select All"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                Select All
+              </button>
               <button
                 onclick="downloadMerchantDataCSV()"
                 class="btn-action flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100"
@@ -568,79 +687,169 @@
                     No
                   </th>
                   <th
-                    class="hidden py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'kodeKanca')"
+                    data-table="result"
                   >
                     Kode Kanca
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-kodeKanca"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'namaKanca')"
+                    data-table="result"
                   >
                     Nama Kanca
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-namaKanca"
+                    ></span>
                   </th>
                   <th
-                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'kodeUker')"
+                    data-table="result"
                   >
                     Kode Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-kodeUker"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'uker')"
+                    data-table="result"
                   >
                     Nama Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-uker"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'tid')"
+                    data-table="result"
                   >
                     TID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-tid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'mid')"
+                    data-table="result"
                   >
                     MID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-mid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'nama')"
+                    data-table="result"
                   >
                     Nama Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-nama"
+                    ></span>
                   </th>
                   <th
-                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'pn')"
+                    data-table="result"
                   >
                     PN
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-pn"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'pemrakarsa')"
+                    data-table="result"
                   >
                     Pemrakarsa
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-pemrakarsa"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'trxLalu')"
+                    data-table="result"
                   >
                     Trx MOM
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-trxLalu"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'svLalu')"
+                    data-table="result"
                   >
                     SV MOM
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-svLalu"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'trxUpdate')"
+                    data-table="result"
                   >
                     Trx Update
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-trxUpdate"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'svUpdate')"
+                    data-table="result"
                   >
                     SV Update
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-svUpdate"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'deltaTrx')"
+                    data-table="result"
                   >
                     Delta Trx
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-deltaTrx"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('result', 'deltaSv')"
+                    data-table="result"
                   >
                     Delta SV
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-result-deltaSv"
+                    ></span>
                   </th>
                   <th
                     class="px-4 py-3 text-center font-semibold whitespace-nowrap"
@@ -655,16 +864,16 @@
             </table>
           </div>
 
-          <!-- Pagination Controls -->
+          <!-- Pagination Controls Result -->
           <div
-            id="paginationControls"
+            id="paginationControlsResult"
             class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50"
           >
             <div class="flex items-center gap-2">
               <span class="text-sm text-gray-500">Show</span>
               <select
-                id="itemsPerPage"
-                onchange="changeItemsPerPage()"
+                id="itemsPerPageResult"
+                onchange="changeItemsPerPage('Result')"
                 class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white"
               >
                 <option value="5">5</option>
@@ -676,19 +885,19 @@
               <span class="text-sm text-gray-500">entries</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500 mr-2" id="paginationInfo"
+              <span class="text-sm text-gray-500 mr-2" id="paginationInfoResult"
                 >Showing 0 to 0 of 0</span
               >
               <button
-                onclick="prevPage()"
-                id="btnPrev"
+                onclick="prevPage('Result')"
+                id="btnPrevResult"
                 class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
               >
                 Prev
               </button>
               <button
-                onclick="nextPage()"
-                id="btnNext"
+                onclick="nextPage('Result')"
+                id="btnNextResult"
                 class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
               >
                 Next
@@ -735,7 +944,6 @@
                 Merchants added to monitoring list
               </p>
             </div>
-            <!-- Perbaikan Flex Wrap agar tombol tidak terpotong di mobile -->
             <div class="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
               <span
                 id="selectedCount"
@@ -802,79 +1010,169 @@
                     No
                   </th>
                   <th
-                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'kodeKanca')"
+                    data-table="selected"
                   >
                     Kode Kanca
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-kodeKanca"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'namaKanca')"
+                    data-table="selected"
                   >
                     Nama Kanca
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-namaKanca"
+                    ></span>
                   </th>
                   <th
-                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'kodeUker')"
+                    data-table="selected"
                   >
                     Kode Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-kodeUker"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'uker')"
+                    data-table="selected"
                   >
                     Nama Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-uker"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'tid')"
+                    data-table="selected"
                   >
                     TID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-tid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'mid')"
+                    data-table="selected"
                   >
                     MID
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-mid"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'nama')"
+                    data-table="selected"
                   >
                     Nama Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-nama"
+                    ></span>
                   </th>
                   <th
-                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="hidden px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'pn')"
+                    data-table="selected"
                   >
                     PN
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-pn"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-left font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'pemrakarsa')"
+                    data-table="selected"
                   >
                     Pemrakarsa
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-pemrakarsa"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'trxLalu')"
+                    data-table="selected"
                   >
                     Trx MOM
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-trxLalu"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'svLalu')"
+                    data-table="selected"
                   >
                     SV MOM
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-svLalu"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'trxUpdate')"
+                    data-table="selected"
                   >
                     Trx Update
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-trxUpdate"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'svUpdate')"
+                    data-table="selected"
                   >
                     SV Update
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-svUpdate"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'deltaTrx')"
+                    data-table="selected"
                   >
                     Delta Trx
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-deltaTrx"
+                    ></span>
                   </th>
                   <th
-                    class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                    class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none"
+                    onclick="requestSort('selected', 'deltaSv')"
+                    data-table="selected"
                   >
                     Delta SV
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-80"
+                      id="icon-selected-deltaSv"
+                    ></span>
                   </th>
                   <th
                     class="px-4 py-3 text-center font-semibold whitespace-nowrap"
@@ -887,6 +1185,47 @@
                 <!-- Selected rows will be inserted here -->
               </tbody>
             </table>
+          </div>
+          <!-- Pagination Controls Selected -->
+          <div
+            id="paginationControlsSelected"
+            class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-500">Show</span>
+              <select
+                id="itemsPerPageSelected"
+                onchange="changeItemsPerPage('Selected')"
+                class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white"
+              >
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="50">50</option>
+                <option value="all">All</option>
+              </select>
+              <span class="text-sm text-gray-500">entries</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="text-sm text-gray-500 mr-2"
+                id="paginationInfoSelected"
+                >Showing 0 to 0 of 0</span
+              >
+              <button
+                onclick="prevPage('Selected')"
+                id="btnPrevSelected"
+                class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                Prev
+              </button>
+              <button
+                onclick="nextPage('Selected')"
+                id="btnNextSelected"
+                class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                Next
+              </button>
+            </div>
           </div>
           <div id="selectedEmptyState" class="py-8 text-center">
             <svg
@@ -908,85 +1247,143 @@
           </div>
         </section>
 
-        <!-- Summary Cards Section -->
-        <section
-          class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in"
+        <!-- Summary Cards & Activity Log Section -->
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in"
           style="animation-delay: 0.6s"
         >
-          <div
-            class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-primary"
+          <!-- Summary Cards Section -->
+          <section
+            class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
           >
-            <div class="flex items-center justify-between">
-              <div>
-                <p
-                  class="text-sm font-medium text-gray-500 uppercase tracking-wide"
+            <div
+              class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-primary"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-gray-500 uppercase tracking-wide"
+                  >
+                    Total Delta Trx (Selected)
+                  </p>
+                  <p id="totalTrx" class="text-3xl font-bold text-primary mt-2">
+                    0
+                  </p>
+                </div>
+                <div
+                  class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center"
                 >
-                  Total Delta Trx (Selected)
-                </p>
-                <p id="totalTrx" class="text-3xl font-bold text-primary mt-2">
-                  0
-                </p>
-              </div>
-              <div
-                class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center"
-              >
-                <svg
-                  class="w-7 h-7 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
+                  <svg
+                    class="w-7 h-7 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-          <div
-            class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-accent"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p
-                  class="text-sm font-medium text-gray-500 uppercase tracking-wide"
+            <div
+              class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-accent"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-gray-500 uppercase tracking-wide"
+                  >
+                    Total Delta SV (Selected)
+                  </p>
+                  <p
+                    id="totalSv"
+                    class="text-3xl font-bold text-secondary mt-2"
+                  >
+                    Rp 0
+                  </p>
+                </div>
+                <div
+                  class="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center"
                 >
-                  Total Delta SV (Selected)
-                </p>
-                <p id="totalSv" class="text-3xl font-bold text-secondary mt-2">
-                  Rp 0
-                </p>
-              </div>
-              <div
-                class="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center"
-              >
-                <svg
-                  class="w-7 h-7 text-secondary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                  <svg
+                    class="w-7 h-7 text-secondary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+
+          <!-- Activity Log Section -->
+          <section
+            class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-400 lg:col-span-1"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2
+                class="text-sm font-semibold text-gray-800 uppercase tracking-wide"
+              >
+                Activity Log
+              </h2>
+              <span
+                class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium"
+                >Last 2</span
+              >
+            </div>
+            <ul id="activityLogList" class="space-y-3">
+              <!-- Logs akan diisi dari JavaScript -->
+            </ul>
+          </section>
+        </div>
       </main>
 
       <!-- Footer -->
-      <footer class="bg-white border-t border-gray-100 mt-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p class="text-center text-sm text-gray-500">
-            © BAYU DWI SUHARMINTO | IG: bayudwis_07
+      <footer class="bg-white border-t border-gray-100 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div
+            class="h-[2px] w-24 mx-auto bg-gradient-to-r from-primary via-secondary to-accent rounded-full mb-4"
+          ></div>
+          <div
+            class="flex flex-col sm:flex-row items-center justify-center gap-2 text-center"
+          >
+            <span class="text-sm text-gray-500">
+              © 2026
+              <span class="font-semibold text-gray-700"
+                >Bayu Dwi Suharminto</span
+              >
+            </span>
+            <span class="hidden sm:inline text-gray-300">|</span>
+            <a
+              href="https://instagram.com/bayudwis_07"
+              target="_blank"
+              class="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-all duration-300 group"
+            >
+              <svg
+                class="w-4 h-4 group-hover:scale-110 transition-transform duration-300"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zm0 1.5h8.5c2.34 0 4.25 1.91 4.25 4.25v8.5c0 2.34-1.91 4.25-4.25 4.25h-8.5c-2.34 0-4.25-1.91-4.25-4.25v-8.5c0-2.34 1.91-4.25 4.25-4.25zm9.25 2.25a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 1.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7z"
+                />
+              </svg>
+              <span class="hover:underline">@bayudwis_07</span>
+            </a>
+          </div>
+          <p class="text-xs text-gray-400 text-center mt-3 tracking-wide">
+            Merchant Monitoring System • Internal Banking Dashboard
           </p>
         </div>
       </footer>
@@ -1009,13 +1406,28 @@
 
       let merchantData = [];
       let selectedMerchants = [];
-      let currentPage = 1;
-      let itemsPerPage = 10;
+
+      // Konfigurasi Pagination Dinamis
+      let pagination = {
+        Result: { current: 1, itemsPerPage: 10 },
+        Top25: { current: 1, itemsPerPage: 10 },
+        Selected: { current: 1, itemsPerPage: 10 },
+      };
+
+      // Konfigurasi Sorting Tabel
+      let sortConfigs = {
+        top25: { key: "deltaSv", direction: "asc" },
+        result: { key: null, direction: "asc" },
+        selected: { key: null, direction: "asc" },
+      };
 
       // Chart Instances
       let branchChartInstance = null;
       let productivityChartInstance = null;
       let overallProductivityChartInstance = null;
+
+      // Activity Log State
+      const activityLogs = [];
 
       function formatCurrency(num) {
         return "Rp " + num.toLocaleString("id-ID");
@@ -1040,17 +1452,55 @@
         return "";
       }
 
+      // Handler Animasi Tabel saat ganti page
+      function animateTableUpdate(tbody) {
+        tbody.classList.remove("fade-in-table");
+        void tbody.offsetWidth; // Trigger reflow CSS
+        tbody.classList.add("fade-in-table");
+      }
+
+      // Handler Activity Log
+      function addActivityLog(message) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        activityLogs.unshift({ time: timeStr, message });
+        if (activityLogs.length > 2) {
+          activityLogs.pop(); // Batasi hanya 5 log terakhir
+        }
+        renderActivityLog();
+      }
+
+      function renderActivityLog() {
+        const list = document.getElementById("activityLogList");
+        if (!list) return;
+        list.innerHTML = "";
+        if (activityLogs.length === 0) {
+          list.innerHTML =
+            '<li class="text-sm text-gray-400 italic">Belum ada aktifitas...</li>';
+          return;
+        }
+
+        activityLogs.forEach((log, index) => {
+          list.innerHTML += `
+            <li class="flex items-start gap-3 text-sm animate-fade-in" style="animation-delay: ${index * 0.05}s">
+                <span class="text-[10px] text-gray-400 whitespace-nowrap mt-1 font-mono">[${log.time}]</span>
+                <span class="text-gray-600 flex-1 leading-snug">${log.message}</span>
+            </li>
+          `;
+        });
+      }
+
       // Menghitung Pengunjung Unik Berdasarkan Device
-      // Menggunakan Proxy allorigins agar terhindar dari Error "Failed to Fetch" (CORS Issue)
       async function initVisitorCount() {
         const countEl = document.getElementById("visitorCount");
         const hasVisited = localStorage.getItem("has_visited_mms_dashboard");
 
-        // Base URL CounterAPI
         let baseUrl = `https://api.counterapi.dev/v1/${VISITOR_NAMESPACE}/${VISITOR_KEY}`;
         let targetUrl = hasVisited ? baseUrl : `${baseUrl}/up`;
-
-        // Gunakan proxy allorigins untuk mengatasi masalah CORS (Failed to fetch) di environment iframe/blob
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
         try {
@@ -1060,7 +1510,6 @@
 
           if (data && data.count !== undefined) {
             countEl.textContent = formatNumber(data.count);
-            // Tandai device ini sudah mengunjungi agar tidak dihitung ulang terus
             if (!hasVisited) {
               localStorage.setItem("has_visited_mms_dashboard", "true");
             }
@@ -1068,12 +1517,7 @@
             throw new Error("Invalid data format");
           }
         } catch (e) {
-          console.warn(
-            "API Counter gagal/diblokir, menggunakan local fallback:",
-            e,
-          );
-
-          // Fallback lokal jika API terblokir Adblocker / CORS agar UI tetap rapi
+          console.warn("API Counter gagal, menggunakan local fallback:", e);
           let localCount = parseInt(
             localStorage.getItem("local_visitor_count") || "1245",
           );
@@ -1107,21 +1551,34 @@
           const data = await response.json();
           const rawData = Array.isArray(data) ? data : data.data || [];
 
-          merchantData = rawData.map((item) => ({
-            kodeKanca: String(item.kodeKanca || "-"),
-            namaKanca: String(item.namaKanca || "-"),
-            kodeUker: String(item.kodeUker || "-"),
-            uker: String(item.namaUker || item.uker || item.UKER || "-"),
-            tid: String(item.tid || item.TID || "-"),
-            mid: String(item.mid || item.MID || "-"),
-            nama: String(item.namaMerchant || item.nama || item.NAMA || "-"),
-            pn: String(item.pn || item.PN || "-"),
-            pemrakarsa: String(item.pemrakarsa || item.PEMRAKARSA || "-"),
-            trxLalu: Number(item.trxLast || item.trxLalu || item.TRX_LALU || 0),
-            svLalu: Number(item.svLast || item.svLalu || item.SV_LALU || 0),
-            trxUpdate: Number(item.trxUpdate || item.TRX_UPDATE || 0),
-            svUpdate: Number(item.svUpdate || item.SV_UPDATE || 0),
-          }));
+          merchantData = rawData.map((item) => {
+            const trxLalu = Number(
+              item.trxLast || item.trxLalu || item.TRX_LALU || 0,
+            );
+            const svLalu = Number(
+              item.svLast || item.svLalu || item.SV_LALU || 0,
+            );
+            const trxUpdate = Number(item.trxUpdate || item.TRX_UPDATE || 0);
+            const svUpdate = Number(item.svUpdate || item.SV_UPDATE || 0);
+
+            return {
+              kodeKanca: String(item.kodeKanca || "-"),
+              namaKanca: String(item.namaKanca || "-"),
+              kodeUker: String(item.kodeUker || "-"),
+              uker: String(item.namaUker || item.uker || item.UKER || "-"),
+              tid: String(item.tid || item.TID || "-"),
+              mid: String(item.mid || item.MID || "-"),
+              nama: String(item.namaMerchant || item.nama || item.NAMA || "-"),
+              pn: String(item.pn || item.PN || "-"),
+              pemrakarsa: String(item.pemrakarsa || item.PEMRAKARSA || "-"),
+              trxLalu,
+              svLalu,
+              trxUpdate,
+              svUpdate,
+              deltaTrx: trxUpdate - trxLalu,
+              deltaSv: svUpdate - svLalu,
+            };
+          });
 
           emptyStateText.textContent = "No merchants found";
           statusText.textContent = "Done Bangg";
@@ -1133,9 +1590,17 @@
             setCurrentDate(new Date());
           }
 
-          renderResultTable(merchantData);
-          renderCharts(merchantData);
-          renderTop25Table(merchantData);
+          // Reset Pagination saat load/refresh data baru
+          pagination.Result.current = 1;
+          pagination.Top25.current = 1;
+
+          renderResultTable(getFilteredData());
+          renderCharts(getBaseFilteredData());
+          renderTop25Table();
+
+          updateSortIcons("top25");
+          updateSortIcons("result");
+          updateSortIcons("selected");
         } catch (error) {
           console.error("Error fetching data:", error);
           emptyStateText.innerHTML =
@@ -1146,58 +1611,185 @@
         }
       }
 
+      function handleRefresh() {
+        addActivityLog("Memperbarui data (Refresh)");
+        fetchSheetData();
+      }
+
+      // Handler Logika Pagination Universal
+      function handlePagination(dataArray, tableType) {
+        let itemsPerPage = pagination[tableType].itemsPerPage;
+        let currentPage = pagination[tableType].current;
+
+        if (itemsPerPage !== "all") {
+          const totalItems = dataArray.length;
+          const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+          if (currentPage > totalPages) currentPage = totalPages;
+          if (currentPage < 1) currentPage = 1;
+
+          pagination[tableType].current = currentPage;
+
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+          return {
+            paginatedData: dataArray.slice(startIndex, endIndex),
+            startIndex,
+            endIndex,
+            totalItems,
+            totalPages,
+            currentPage,
+          };
+        }
+        return {
+          paginatedData: dataArray,
+          startIndex: 0,
+          endIndex: dataArray.length,
+          totalItems: dataArray.length,
+          totalPages: 1,
+          currentPage: 1,
+        };
+      }
+
+      function updatePaginationUI(tableType, pageInfo) {
+        const controls = document.getElementById(
+          `paginationControls${tableType}`,
+        );
+        const info = document.getElementById(`paginationInfo${tableType}`);
+        const btnPrev = document.getElementById(`btnPrev${tableType}`);
+        const btnNext = document.getElementById(`btnNext${tableType}`);
+
+        if (!controls) return;
+
+        if (pageInfo.totalItems === 0) {
+          controls.classList.add("hidden");
+          return;
+        }
+
+        controls.classList.remove("hidden");
+
+        if (pagination[tableType].itemsPerPage !== "all") {
+          info.textContent = `Menampilkan ${pageInfo.startIndex + 1} hingga ${pageInfo.endIndex} dari ${pageInfo.totalItems} data`;
+          btnPrev.disabled = pageInfo.currentPage === 1;
+          btnNext.disabled = pageInfo.currentPage === pageInfo.totalPages;
+        } else {
+          info.textContent = `Menampilkan semua ${pageInfo.totalItems} data`;
+          btnPrev.disabled = true;
+          btnNext.disabled = true;
+        }
+      }
+
+      function changeItemsPerPage(tableType) {
+        const select = document.getElementById(`itemsPerPage${tableType}`);
+        pagination[tableType].itemsPerPage =
+          select.value === "all" ? "all" : parseInt(select.value);
+        pagination[tableType].current = 1;
+
+        if (tableType === "Result") renderResultTable(getFilteredData());
+        if (tableType === "Top25") renderTop25Table();
+        if (tableType === "Selected") renderSelectedTable();
+      }
+
+      function nextPage(tableType) {
+        pagination[tableType].current++;
+        if (tableType === "Result") renderResultTable(getFilteredData());
+        if (tableType === "Top25") renderTop25Table();
+        if (tableType === "Selected") renderSelectedTable();
+      }
+
+      function prevPage(tableType) {
+        if (pagination[tableType].current > 1) {
+          pagination[tableType].current--;
+          if (tableType === "Result") renderResultTable(getFilteredData());
+          if (tableType === "Top25") renderTop25Table();
+          if (tableType === "Selected") renderSelectedTable();
+        }
+      }
+
+      // Fungsi Mengurutkan Data
+      function applySort(dataArray, sortConfig) {
+        if (!sortConfig.key) return dataArray;
+        return [...dataArray].sort((a, b) => {
+          let valA = a[sortConfig.key];
+          let valB = b[sortConfig.key];
+
+          if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+
+          if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+          if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+          return 0;
+        });
+      }
+
+      function requestSort(table, key) {
+        if (sortConfigs[table].key === key) {
+          sortConfigs[table].direction =
+            sortConfigs[table].direction === "asc" ? "desc" : "asc";
+        } else {
+          sortConfigs[table].key = key;
+          sortConfigs[table].direction = "asc";
+        }
+
+        updateSortIcons(table);
+
+        if (table === "result") {
+          pagination.Result.current = 1;
+          renderResultTable(getFilteredData());
+        } else if (table === "selected") {
+          pagination.Selected.current = 1;
+          renderSelectedTable();
+        } else if (table === "top25") {
+          pagination.Top25.current = 1;
+          renderTop25Table();
+        }
+      }
+
+      function updateSortIcons(table) {
+        document
+          .querySelectorAll(`th[data-table="${table}"] .sort-icon`)
+          .forEach((el) => (el.innerHTML = ""));
+        const config = sortConfigs[table];
+        if (config.key) {
+          const iconEl = document.getElementById(`icon-${table}-${config.key}`);
+          if (iconEl) {
+            iconEl.innerHTML =
+              config.direction === "asc" ? "&#9650;" : "&#9660;";
+          }
+        }
+      }
+
       function renderResultTable(data) {
         const tbody = document.getElementById("resultBody");
         const emptyState = document.getElementById("emptyState");
         const countEl = document.getElementById("resultCount");
-        const paginationControls =
-          document.getElementById("paginationControls");
-        const paginationInfo = document.getElementById("paginationInfo");
-        const btnPrev = document.getElementById("btnPrev");
-        const btnNext = document.getElementById("btnNext");
 
         tbody.innerHTML = "";
 
         if (!data || data.length === 0) {
           emptyState.classList.remove("hidden");
           countEl.textContent = "0 records";
-          if (paginationControls) paginationControls.classList.add("hidden");
+          document
+            .getElementById("paginationControlsResult")
+            .classList.add("hidden");
+          updateSelectAllButtonState(); // Update btn state
           return;
         }
 
         emptyState.classList.add("hidden");
         countEl.textContent = `${data.length} records`;
-        if (paginationControls) paginationControls.classList.remove("hidden");
 
-        let paginatedData = data;
-        let startIndexOffset = 0;
+        const pageInfo = handlePagination(data, "Result");
+        updatePaginationUI("Result", pageInfo);
 
-        if (itemsPerPage !== "all") {
-          const totalItems = data.length;
-          const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-          if (currentPage > totalPages) currentPage = totalPages;
-          if (currentPage < 1) currentPage = 1;
-
-          const startIndex = (currentPage - 1) * itemsPerPage;
-          startIndexOffset = startIndex;
-          const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-          paginatedData = data.slice(startIndex, endIndex);
-
-          paginationInfo.textContent = `Menampilkan ${startIndex + 1} hingga ${endIndex} dari ${totalItems} data`;
-          btnPrev.disabled = currentPage === 1;
-          btnNext.disabled = currentPage === totalPages;
-        } else {
-          paginationInfo.textContent = `Menampilkan semua ${data.length} data`;
-          btnPrev.disabled = true;
-          btnNext.disabled = true;
-        }
-
-        paginatedData.forEach((item, index) => {
-          const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
-          const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
+        pageInfo.paginatedData.forEach((item, index) => {
+          const deltaTrx = item.deltaTrx;
+          const deltaSv = item.deltaSv;
           const isSelected = selectedMerchants.some((m) => m.tid === item.tid);
-          const rowNo = startIndexOffset + index + 1;
+          const rowNo = pageInfo.startIndex + index + 1;
 
           const row = document.createElement("tr");
           row.className = `row-hover ${isSelected ? "bg-blue-50" : "bg-white"}`;
@@ -1234,6 +1826,9 @@
         `;
           tbody.appendChild(row);
         });
+
+        updateSelectAllButtonState(); // Pastikan tombol select all ikut terupdate
+        animateTableUpdate(tbody);
       }
 
       function renderSelectedTable() {
@@ -1246,6 +1841,10 @@
         if (selectedMerchants.length === 0) {
           emptyState.classList.remove("hidden");
           countEl.textContent = "0 selected";
+          const controlPanel = document.getElementById(
+            "paginationControlsSelected",
+          );
+          if (controlPanel) controlPanel.classList.add("hidden");
           updateTotals();
           return;
         }
@@ -1253,14 +1852,19 @@
         emptyState.classList.add("hidden");
         countEl.textContent = `${selectedMerchants.length} selected`;
 
-        selectedMerchants.forEach((item, index) => {
-          const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
-          const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
+        const dataToRender = applySort(selectedMerchants, sortConfigs.selected);
+        const pageInfo = handlePagination(dataToRender, "Selected");
+        updatePaginationUI("Selected", pageInfo);
+
+        pageInfo.paginatedData.forEach((item, index) => {
+          const deltaTrx = item.deltaTrx;
+          const deltaSv = item.deltaSv;
+          const rowNo = pageInfo.startIndex + index + 1;
 
           const row = document.createElement("tr");
           row.className = "row-hover bg-white";
           row.innerHTML = `
-          <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${index + 1}</td>
+          <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeKanca}</td>
           <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.namaKanca}</td>
           <td class="hidden px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.kodeUker}</td>
@@ -1294,33 +1898,42 @@
         });
 
         updateTotals();
+        animateTableUpdate(tbody);
       }
 
       function getTop25Data() {
-        const currentData = getFilteredData();
-        if (!currentData || currentData.length === 0) return [];
+        const baseData = getBaseFilteredData();
+        if (!baseData || baseData.length === 0) return [];
 
-        return [...currentData]
-          .map((item) => ({
-            ...item,
-            deltaSv: item.svUpdate - item.svLalu,
-          }))
+        let top25 = [...baseData]
           .sort((a, b) => a.deltaSv - b.deltaSv)
           .slice(0, 25);
+
+        return applySort(top25, sortConfigs.top25);
       }
 
-      function renderTop25Table(data) {
+      function renderTop25Table() {
         const tbody = document.getElementById("top25Body");
         tbody.innerHTML = "";
 
         const sortedData = getTop25Data();
-        if (sortedData.length === 0) return;
+        if (sortedData.length === 0) {
+          const controlPanel = document.getElementById(
+            "paginationControlsTop25",
+          );
+          if (controlPanel) controlPanel.classList.add("hidden");
+          return;
+        }
 
-        sortedData.forEach((item, index) => {
+        const pageInfo = handlePagination(sortedData, "Top25");
+        updatePaginationUI("Top25", pageInfo);
+
+        pageInfo.paginatedData.forEach((item, index) => {
+          const rowNo = pageInfo.startIndex + index + 1;
           const row = document.createElement("tr");
           row.className = "row-hover bg-white";
           row.innerHTML = `
-            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${index + 1}</td>
+            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
             <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.namaKanca}</td>
             <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${item.uker}</td>
             <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">${item.tid}</td>
@@ -1335,6 +1948,8 @@
           `;
           tbody.appendChild(row);
         });
+
+        animateTableUpdate(tbody);
       }
 
       function renderCharts(data) {
@@ -1345,12 +1960,10 @@
 
         if (!data || data.length === 0) return;
 
-        // ---------------------------------------------------------
-        // 1. Grafik Pertumbuhan Cabang (Juta) - Bar
-        // ---------------------------------------------------------
+        // 1. Grafik Pertumbuhan Cabang
         const branchDataMap = {};
         data.forEach((item) => {
-          const deltaSv = item.svUpdate - item.svLalu;
+          const deltaSv = item.deltaSv;
           if (!branchDataMap[item.namaKanca]) branchDataMap[item.namaKanca] = 0;
           branchDataMap[item.namaKanca] += deltaSv;
         });
@@ -1360,7 +1973,7 @@
             kanca,
             delta: Math.round(branchDataMap[kanca] / 1000000),
           }))
-          .sort((a, b) => a.delta - b.delta);
+          .sort((a, b) => b.delta - a.delta);
 
         const ctxBranch = document
           .getElementById("branchChart")
@@ -1387,24 +2000,45 @@
             ],
           },
           options: {
+            indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { left: 40, right: 60 } },
             scales: {
-              y: { title: { display: true, text: "Juta Rp" } },
-              x: {
-                ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 },
-              },
+              x: { title: { display: true, text: "Juta Rp" } },
+              y: { ticks: { autoSkip: false } },
             },
             plugins: {
               legend: { display: false },
-              datalabels: { display: false },
+              datalabels: {
+                display: true,
+                color: "#475569",
+                anchor: "end",
+                align: "end",
+                font: { weight: "bold", size: 10 },
+                formatter: (value) => {
+                  const formatted = value.toLocaleString("id-ID");
+                  return value > 0
+                    ? "+" + formatted + " Jt"
+                    : formatted + " Jt";
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const val = context.raw;
+                    const formatted = val.toLocaleString("id-ID");
+                    return val > 0
+                      ? " +" + formatted + " Jt"
+                      : " " + formatted + " Jt";
+                  },
+                },
+              },
             },
           },
         });
 
-        // ---------------------------------------------------------
-        // 2. Grafik Donut Keseluruhan (Produktif vs Non-Produktif)
-        // ---------------------------------------------------------
+        // 2. Grafik Donut Keseluruhan
         const productiveCount = data.filter(
           (item) => item.svUpdate >= 15000000,
         ).length;
@@ -1446,7 +2080,7 @@
                     totalCount > 0
                       ? ((value / totalCount) * 100).toFixed(1) + "%"
                       : "0%";
-                  return `${value}\n(${percentage})`;
+                  return `${value.toLocaleString("id-ID")}\n(${percentage})`;
                 },
                 textAlign: "center",
               },
@@ -1458,7 +2092,7 @@
                       totalCount > 0
                         ? ((value / totalCount) * 100).toFixed(1)
                         : 0;
-                    return ` ${context.label}: ${value} Merchant (${percent}%)`;
+                    return ` ${context.label}: ${value.toLocaleString("id-ID")} Merchant (${percent}%)`;
                   },
                 },
               },
@@ -1466,9 +2100,7 @@
           },
         });
 
-        // ---------------------------------------------------------
-        // 3. Grafik Produktivitas per Kanca (Horizontal Bar)
-        // ---------------------------------------------------------
+        // 3. Grafik Produktivitas per Kanca
         const productivityMap = {};
         data.forEach((item) => {
           const kanca = item.namaKanca;
@@ -1531,9 +2163,7 @@
                 max: 100,
                 title: { display: true, text: "Persentase (%)" },
               },
-              y: {
-                ticks: { autoSkip: false },
-              },
+              y: { ticks: { autoSkip: false } },
             },
             plugins: {
               legend: { display: false },
@@ -1544,14 +2174,14 @@
                 font: { size: 10, weight: "bold" },
                 formatter: (value, ctx) => {
                   const detail = prodDetails[ctx.dataIndex];
-                  return `${value}% (${detail.prod}/${detail.tot})`;
+                  return `${value}% (${detail.prod.toLocaleString("id-ID")}/${detail.tot.toLocaleString("id-ID")})`;
                 },
               },
               tooltip: {
                 callbacks: {
                   label: function (context) {
                     const detail = prodDetails[context.dataIndex];
-                    return ` ${context.raw}% (${detail.prod} dari ${detail.tot} Merchant)`;
+                    return ` ${context.raw}% (${detail.prod.toLocaleString("id-ID")} dari ${detail.tot.toLocaleString("id-ID")} Merchant)`;
                   },
                 },
               },
@@ -1565,8 +2195,8 @@
         let totalDeltaSv = 0;
 
         selectedMerchants.forEach((item) => {
-          totalDeltaTrx += calculateDelta(item.trxUpdate, item.trxLalu);
-          totalDeltaSv += calculateDelta(item.svUpdate, item.svLalu);
+          totalDeltaTrx += item.deltaTrx;
+          totalDeltaSv += item.deltaSv;
         });
 
         document.getElementById("totalTrx").textContent =
@@ -1575,28 +2205,127 @@
           getDeltaPrefix(totalDeltaSv) + formatCurrency(totalDeltaSv);
       }
 
+      // Handler Tombol Select All / Unselect All
+      function toggleSelectAll() {
+        const currentData = getFilteredData();
+        if (currentData.length === 0) return;
+
+        // Mengecek apakah semua data yang ada di tabel hasil pencarian sudah terpilih
+        const allSelected = currentData.every((item) =>
+          selectedMerchants.some((m) => m.tid === item.tid),
+        );
+
+        if (allSelected) {
+          // Logika Unselect All: Menghapus data dari list selected
+          const currentTids = currentData.map((item) => item.tid);
+          selectedMerchants = selectedMerchants.filter(
+            (m) => !currentTids.includes(m.tid),
+          );
+          addActivityLog(
+            `Membatalkan pilihan (Unselect All) ${currentData.length} merchant`,
+          );
+        } else {
+          // Logika Select All: Menambahkan semua data ke list selected (mengabaikan duplikat)
+          currentData.forEach((item) => {
+            if (!selectedMerchants.some((m) => m.tid === item.tid)) {
+              selectedMerchants.push(item);
+            }
+          });
+          addActivityLog(
+            `Memilih semua (Select All) ${currentData.length} merchant`,
+          );
+        }
+
+        renderResultTable(currentData);
+        renderSelectedTable();
+      }
+
+      // Update Tampilan Tombol Select All secara Dinamis
+      function updateSelectAllButtonState() {
+        const btn = document.getElementById("btnSelectAllToggle");
+        if (!btn) return;
+
+        const currentData = getFilteredData();
+
+        // Base Styling untuk tombol action
+        btn.className =
+          "btn-action flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors";
+
+        if (currentData.length === 0) {
+          // State ketika tidak ada data di tabel
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
+          btn.classList.add(
+            "bg-gray-100",
+            "text-gray-400",
+            "border",
+            "border-gray-200",
+            "cursor-not-allowed",
+            "opacity-50",
+          );
+          btn.disabled = true;
+          return;
+        }
+
+        btn.disabled = false;
+
+        // Mengecek kondisi untuk transisi kata dan warna
+        const allSelected = currentData.every((item) =>
+          selectedMerchants.some((m) => m.tid === item.tid),
+        );
+
+        if (allSelected) {
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Unselect All`;
+          btn.classList.add(
+            "bg-orange-50",
+            "text-orange-700",
+            "border",
+            "border-orange-200",
+            "hover:bg-orange-100",
+          );
+        } else {
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
+          btn.classList.add(
+            "bg-blue-50",
+            "text-blue-700",
+            "border",
+            "border-blue-200",
+            "hover:bg-blue-100",
+          );
+        }
+      }
+
       function selectMerchant(tid) {
         const merchant = merchantData.find((m) => m.tid === tid);
         if (merchant && !selectedMerchants.some((m) => m.tid === tid)) {
           selectedMerchants.push(merchant);
+          addActivityLog(`Menambahkan merchant ${merchant.nama} ke Selected`);
           renderResultTable(getFilteredData());
           renderSelectedTable();
         }
       }
 
       function removeMerchant(tid) {
+        const merchant = selectedMerchants.find((m) => m.tid === tid);
         selectedMerchants = selectedMerchants.filter((m) => m.tid !== tid);
+        if (merchant) {
+          addActivityLog(
+            `Menghapus merchant ${merchant.nama} dari list Selected`,
+          );
+        }
         renderResultTable(getFilteredData());
         renderSelectedTable();
       }
 
       function clearSelected() {
-        selectedMerchants = [];
-        renderResultTable(getFilteredData());
-        renderSelectedTable();
+        if (selectedMerchants.length > 0) {
+          selectedMerchants = [];
+          addActivityLog(`Membersihkan semua list Selected Merchants`);
+          renderResultTable(getFilteredData());
+          renderSelectedTable();
+        }
       }
 
-      function getFilteredData() {
+      function getBaseFilteredData() {
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
@@ -1626,40 +2355,35 @@
         });
       }
 
+      function getFilteredData() {
+        const baseFiltered = getBaseFilteredData();
+        return applySort(baseFiltered, sortConfigs.result);
+      }
+
+      // Handler Pencarian via Input
+      let searchTimeout;
       function searchMerchant() {
-        currentPage = 1;
-        const filtered = getFilteredData();
-        renderResultTable(filtered);
-        renderCharts(filtered);
-        renderTop25Table(filtered);
+        // Debounce agar UI tidak lag saat mengetik cepat
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          pagination.Result.current = 1;
+          pagination.Top25.current = 1;
+          renderResultTable(getFilteredData());
+          renderCharts(getBaseFilteredData());
+          renderTop25Table();
+        }, 300);
       }
 
       function clearSearch() {
         document.getElementById("searchInput").value = "";
         document.getElementById("searchCategory").value = "all";
-        currentPage = 1;
-        renderResultTable(merchantData);
-        renderCharts(merchantData);
-        renderTop25Table(merchantData);
-      }
+        pagination.Result.current = 1;
+        pagination.Top25.current = 1;
 
-      function changeItemsPerPage() {
-        const select = document.getElementById("itemsPerPage");
-        itemsPerPage = select.value === "all" ? "all" : parseInt(select.value);
-        currentPage = 1;
+        addActivityLog("Membersihkan filter pencarian");
         renderResultTable(getFilteredData());
-      }
-
-      function nextPage() {
-        currentPage++;
-        renderResultTable(getFilteredData());
-      }
-
-      function prevPage() {
-        if (currentPage > 1) {
-          currentPage--;
-          renderResultTable(getFilteredData());
-        }
+        renderCharts(getBaseFilteredData());
+        renderTop25Table();
       }
 
       function setCurrentDate(dateObj) {
@@ -1677,10 +2401,12 @@
 
       window.onload = () => {
         document.getElementById("dataTanggal").textContent = "Memuat...";
+        addActivityLog("Dashboard dimuat, mengambil data dari server...");
         fetchSheetData();
-        initVisitorCount(); // Menjalankan perhitungan pengunjung
+        initVisitorCount();
       };
 
+      // Konversi Data Object Ke CSV
       function convertToCSV(objArray) {
         const array =
           typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
@@ -1723,7 +2449,7 @@
         let str = headers.join(",") + "\r\n";
 
         for (let i = 0; i < array.length; i++) {
-          let line = `${i + 1},`; // Add No
+          let line = `${i + 1},`;
           for (let index in keys) {
             let value = array[i][keys[index]];
             if (typeof value === "string") {
@@ -1732,9 +2458,7 @@
             }
             line += value + ",";
           }
-          const deltaTrx = calculateDelta(array[i].trxUpdate, array[i].trxLalu);
-          const deltaSv = calculateDelta(array[i].svUpdate, array[i].svLalu);
-          line += `${deltaTrx},${deltaSv}`;
+          line += `${array[i].deltaTrx},${array[i].deltaSv}`;
           str += line + "\r\n";
         }
         return str;
@@ -1754,15 +2478,18 @@
         }
       }
 
+      // Download Handlers (Disertai log aktifitas)
       function downloadMerchantDataCSV() {
         const dataToDownload = getFilteredData();
         if (dataToDownload.length === 0) return;
+        addActivityLog("Mengunduh Report CSV All Merchant Data");
         const csv = convertToCSV(dataToDownload);
         downloadCSV(csv, "Report Data ALL MOM.csv");
       }
 
       function downloadSelectedCSV() {
         if (selectedMerchants.length === 0) return;
+        addActivityLog("Mengunduh Report CSV Selected Merchant");
         const csv = convertToCSV(selectedMerchants);
         downloadCSV(csv, "Report Data MOM.csv");
       }
@@ -1770,6 +2497,7 @@
       function downloadTop25CSV() {
         const data = getTop25Data();
         if (data.length === 0) return;
+        addActivityLog("Mengunduh Report CSV Top 25 Penurunan");
 
         const headers = [
           "No",
@@ -1803,6 +2531,7 @@
       function downloadTop25PDF() {
         const top25 = getTop25Data();
         if (top25.length === 0) return;
+        addActivityLog("Mengunduh Report PDF Top 25 Penurunan");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("landscape");
@@ -1877,6 +2606,7 @@
 
       function downloadSelectedPDF() {
         if (selectedMerchants.length === 0) return;
+        addActivityLog("Mengunduh Report PDF Selected Merchant");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("landscape");
@@ -1909,8 +2639,6 @@
         ];
 
         const data = selectedMerchants.map((item, index) => {
-          const deltaTrx = calculateDelta(item.trxUpdate, item.trxLalu);
-          const deltaSv = calculateDelta(item.svUpdate, item.svLalu);
           return [
             index + 1,
             item.namaKanca,
@@ -1923,8 +2651,8 @@
             formatCurrency(item.svLalu),
             formatNumber(item.trxUpdate),
             formatCurrency(item.svUpdate),
-            getDeltaPrefix(deltaTrx) + formatNumber(deltaTrx),
-            getDeltaPrefix(deltaSv) + formatCurrency(deltaSv),
+            getDeltaPrefix(item.deltaTrx) + formatNumber(item.deltaTrx),
+            getDeltaPrefix(item.deltaSv) + formatCurrency(item.deltaSv),
           ];
         });
 
@@ -1963,8 +2691,8 @@
         let totalDeltaTrx = 0;
         let totalDeltaSv = 0;
         selectedMerchants.forEach((item) => {
-          totalDeltaTrx += calculateDelta(item.trxUpdate, item.trxLalu);
-          totalDeltaSv += calculateDelta(item.svUpdate, item.svLalu);
+          totalDeltaTrx += item.deltaTrx;
+          totalDeltaSv += item.deltaSv;
         });
 
         const finalY = doc.lastAutoTable.finalY || 34;
