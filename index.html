@@ -1459,19 +1459,55 @@
         tbody.classList.add("fade-in-table");
       }
 
-      // Handler Activity Log
-      function addActivityLog(message) {
+      // Fungsi bantuan untuk mengambil IP Address user
+      async function getUserIP() {
+        try {
+          const response = await fetch("https://api.ipify.org?format=json");
+          const data = await response.json();
+          return data.ip;
+        } catch (error) {
+          console.error("Gagal mengambil IP:", error);
+          return "Unknown IP";
+        }
+      }
+
+      // Handler Activity Log yang sudah di-update
+      async function addActivityLog(message) {
         const now = new Date();
         const timeStr = now.toLocaleTimeString("id-ID", {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
         });
+
+        // 1. Update UI (Frontend)
         activityLogs.unshift({ time: timeStr, message });
         if (activityLogs.length > 2) {
-          activityLogs.pop(); // Batasi hanya 5 log terakhir
+          activityLogs.pop(); // Batasi hanya 2 log terakhir di layar
         }
         renderActivityLog();
+
+        // 2. Ambil IP dan Device
+        const userIP = await getUserIP();
+        const userDevice = navigator.userAgent; // Menangkap info browser & OS (contoh: Mozilla/5.0 Windows NT...)
+
+        // 3. Kirim Data ke Google Sheet (Backend)
+        try {
+          await fetch(Berkualitas, {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            },
+            body: JSON.stringify({
+              message: message,
+              ip: userIP,
+              device: userDevice,
+            }),
+          });
+          console.log("Activity log + IP berhasil dikirim ke server.");
+        } catch (error) {
+          console.error("Gagal mengirim log ke Google Sheet:", error);
+        }
       }
 
       function renderActivityLog() {
