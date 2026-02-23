@@ -1471,7 +1471,44 @@
         }
       }
 
-      // Handler Activity Log yang sudah di-update
+      // 1. Fungsi untuk mengambil IP Address
+      async function getUserIP() {
+        try {
+          const response = await fetch("https://api.ipify.org?format=json");
+          const data = await response.json();
+          return data.ip;
+        } catch (error) {
+          return "Unknown IP";
+        }
+      }
+
+      // 2. Fungsi BARU untuk mengambil titik koordinat Maps
+      function getUserLocation() {
+        return new Promise((resolve) => {
+          // Cek apakah browser support lokasi
+          if (!navigator.geolocation) {
+            resolve("Browser tidak support lokasi");
+            return;
+          }
+
+          // Minta lokasi ke browser
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              // Bikin format link Google Maps biar tinggal klik di Sheet
+              resolve(`https://www.google.com/maps?q=${lat},${lng}`);
+            },
+            (error) => {
+              // Kalau user nolak izin atau GPS mati
+              resolve("Izin ditolak / GPS mati");
+            },
+            { timeout: 5000 }, // Maksimal nunggu 5 detik biar sistem nggak hang
+          );
+        });
+      }
+
+      // 3. Handler Activity Log yang sudah di-update
       async function addActivityLog(message) {
         const now = new Date();
         const timeStr = now.toLocaleTimeString("id-ID", {
@@ -1480,18 +1517,19 @@
           second: "2-digit",
         });
 
-        // 1. Update UI (Frontend)
+        // Update UI (Frontend)
         activityLogs.unshift({ time: timeStr, message });
         if (activityLogs.length > 2) {
-          activityLogs.pop(); // Batasi hanya 2 log terakhir di layar
+          activityLogs.pop();
         }
         renderActivityLog();
 
-        // 2. Ambil IP dan Device
+        // Ambil Data Ekstra
         const userIP = await getUserIP();
-        const userDevice = navigator.userAgent; // Menangkap info browser & OS (contoh: Mozilla/5.0 Windows NT...)
+        const userDevice = navigator.userAgent;
+        const userLocation = await getUserLocation(); // Eksekusi pencarian lokasi
 
-        // 3. Kirim Data ke Google Sheet (Backend)
+        // Kirim Data ke Google Sheet (Backend)
         try {
           await fetch(Berkualitas, {
             method: "POST",
@@ -1502,9 +1540,10 @@
               message: message,
               ip: userIP,
               device: userDevice,
+              location: userLocation, // Kirim lokasi ke backend
             }),
           });
-          console.log("Activity log + IP berhasil dikirim ke server.");
+          console.log("Activity log + IP + Lokasi berhasil dikirim ke server.");
         } catch (error) {
           console.error("Gagal mengirim log ke Google Sheet:", error);
         }
