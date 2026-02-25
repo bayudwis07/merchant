@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full antialiased">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Merchant Monitoring System</title>
+
+    <!-- Script untuk mencegah FOUC (Flash of Unstyled Content) saat Dark Mode -->
+    <script>
+      if (
+        localStorage.getItem("color-theme") === "dark" ||
+        (!("color-theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 
     <!-- Library jsPDF untuk unduhan PDF -->
@@ -21,16 +35,26 @@
 
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
-              primary: "#0857c3",
-              secondary: "#307fe2",
-              accent: "#71c5e8",
-              surface: "#f8fafc",
+              corporate: {
+                50: "#f0f4f8",
+                100: "#d9e2ec",
+                500: "#243b53", // Primary dark blue
+                600: "#102a43", // Deeper corporate blue
+              },
+              brand: {
+                500: "#0ea5e9", // Light blue accent
+                600: "#0284c7",
+              },
             },
             fontFamily: {
               inter: ["Inter", "sans-serif"],
+            },
+            boxShadow: {
+              soft: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
             },
           },
         },
@@ -41,133 +65,70 @@
         font-family: "Inter", sans-serif;
       }
 
-      .table-container::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
+      /* Custom Scrollbar */
+      .custom-scrollbar::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
       }
-      .table-container::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 4px;
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
       }
-      .table-container::-webkit-scrollbar-thumb {
+      .custom-scrollbar::-webkit-scrollbar-thumb {
         background: #cbd5e1;
-        border-radius: 4px;
+        border-radius: 10px;
       }
-      .table-container::-webkit-scrollbar-thumb:hover {
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
       }
 
-      .card-hover {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Transitions for smooth Dark Mode switching */
+      body {
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
       }
-      .card-hover:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px -8px rgba(8, 87, 195, 0.15);
-      }
-
-      .row-hover {
-        transition: background-color 0.2s ease;
-      }
-      .row-hover:hover {
-        background-color: #eff6ff;
-      }
-
-      .btn-action {
-        transition: all 0.2s ease;
-      }
-      .btn-action:hover {
-        transform: scale(1.05);
-      }
-      .btn-action:active {
-        transform: scale(0.95);
+      .transition-theme {
+        transition:
+          background-color 0.3s ease,
+          border-color 0.3s ease,
+          color 0.3s ease,
+          box-shadow 0.3s ease;
       }
 
-      .gradient-header {
-        background: linear-gradient(
-          135deg,
-          #0857c3 0%,
-          #307fe2 50%,
-          #71c5e8 100%
-        );
-      }
-
-      /* Enhanced Sticky Header */
-      .sticky-header th {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-      }
       table {
         border-collapse: separate;
         border-spacing: 0;
       }
-      .sticky-header.primary-header th {
-        background-color: #0857c3;
+
+      /* Sticky Header fix for scrolling */
+      .sticky-header th {
+        position: sticky;
+        top: 0;
+        z-index: 20; /* Ditingkatkan agar berada di atas konten lain */
+        background-color: #f8fafc; /* bg-slate-50 (Menghilangkan efek transparan) */
+        box-shadow: inset 0 -1px 0 0 #e2e8f0; /* Memastikan border bawah tetap terlihat */
       }
-      .sticky-header.success-header th {
-        background-color: #16a34a;
-      }
-      .sticky-header.danger-header th {
-        background-color: #dc2626;
+      .dark .sticky-header th {
+        background-color: #0f172a; /* bg-slate-900 */
+        box-shadow: inset 0 -1px 0 0 #334155;
       }
 
-      /* Animasi Utama */
+      /* Animations */
       @keyframes fadeIn {
         from {
           opacity: 0;
-          transform: translateY(10px);
+          transform: translateY(8px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
-
       .animate-fade-in {
-        animation: fadeIn 0.4s ease-out forwards;
-      }
-
-      .fade-in-table {
-        animation: fadeInTable 0.3s ease-out forwards;
-      }
-
-      @keyframes fadeInTable {
-        from {
-          opacity: 0;
-          transform: translateY(5px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .pulse-badge {
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.7;
-        }
-      }
-
-      .loader {
-        border: 3px solid #f3f3f3;
-        border-radius: 50%;
-        border-top: 3px solid #3498db;
-        width: 24px;
-        height: 24px;
-        -webkit-animation: spin 1s linear infinite;
-        animation: spin 1s linear infinite;
-        display: inline-block;
-        vertical-align: middle;
-        margin-right: 8px;
+        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
       @keyframes spin {
@@ -178,428 +139,1291 @@
           transform: rotate(360deg);
         }
       }
-      body {
-        box-sizing: border-box;
+      .loader {
+        border: 2px solid #e2e8f0;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .dark .loader {
+        border-color: #334155;
+        border-top-color: #3b82f6;
+      }
+
+      .pulse-badge {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
       }
     </style>
   </head>
-  <body class="h-full bg-surface font-inter">
-    <div class="min-h-full w-full overflow-auto">
-      <!-- Header -->
-      <header class="gradient-header text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 id="mainTitle" class="text-2xl sm:text-3xl font-bold tracking-tight">
-                Merchant Monitoring System
-              </h1>
-              <p class="text-blue-100 mt-1 text-sm sm:text-base">
-                Internal Banking Dashboard
-              </p>
+  <body
+    class="h-full bg-slate-50 dark:bg-slate-900 font-inter text-slate-800 dark:text-slate-200"
+  >
+    <div class="min-h-full w-full overflow-auto custom-scrollbar">
+      <!-- Header Korporat -->
+      <header
+        class="bg-corporate-600 dark:bg-slate-950 text-white shadow-md transition-theme border-b border-corporate-500 dark:border-slate-800"
+      >
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-5"
+          >
+            <!-- Brand / Title -->
+            <div class="flex items-center gap-4">
+              <div
+                class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 backdrop-blur-sm"
+              >
+                <svg
+                  class="w-6 h-6 text-brand-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h1
+                  id="mainTitle"
+                  class="text-xl sm:text-2xl font-bold tracking-tight text-white"
+                >
+                  Merchant Monitoring System
+                </h1>
+                <p
+                  class="text-slate-300 dark:text-slate-400 mt-0.5 text-xs sm:text-sm font-medium tracking-wide"
+                >
+                  INTERNAL BANKING DASHBOARD
+                </p>
+              </div>
             </div>
 
-            <!-- HEADER RIGHT SECTION -->
-            <div class="flex flex-wrap items-center gap-3">
-              <!-- Professional Visitor Counter -->
-              <div class="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1.5" title="Unique Device Visitors">
-                <div class="bg-white/20 p-1.5 rounded-md">
-                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <span class="text-[9px] leading-tight text-blue-200 uppercase font-bold tracking-wider">Pengunjung</span>
-                  <span id="visitorCount" class="text-sm font-bold text-white leading-tight">
-                    <span class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
-                  </span>
+            <!-- Global Indicators & Controls -->
+            <div class="flex flex-wrap items-center gap-3 md:gap-4">
+              <!-- Dark Mode Toggle -->
+              <button
+                id="themeToggleBtn"
+                class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500"
+                title="Toggle Dark Mode"
+              >
+                <svg
+                  id="themeToggleDarkIcon"
+                  class="hidden w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                  ></path>
+                </svg>
+                <svg
+                  id="themeToggleLightIcon"
+                  class="hidden w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+
+              <div class="h-6 w-px bg-white/20 hidden md:block"></div>
+
+              <!-- Visitor Counter -->
+              <div
+                class="flex items-center gap-2 bg-slate-900/50 dark:bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 shadow-inner"
+              >
+                <svg
+                  class="w-4 h-4 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <div class="flex flex-col">
+                  <span
+                    class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none"
+                    >Visitors</span
+                  >
+                  <span
+                    id="visitorCount"
+                    class="text-sm font-bold text-white leading-tight"
+                    >--</span
+                  >
                 </div>
               </div>
 
               <!-- Last Updated -->
-              <div class="bg-white/20 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-1.5 flex flex-col justify-center">
-                <span class="text-[9px] leading-tight text-blue-200 uppercase font-bold tracking-wider">Last Updated</span>
-                <p id="dataTanggal" class="text-sm font-bold text-white leading-tight">Memuat...</p>
+              <div
+                class="flex items-center gap-2 bg-slate-900/50 dark:bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 shadow-inner"
+              >
+                <svg
+                  class="w-4 h-4 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                <div class="flex flex-col">
+                  <span
+                    class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none"
+                    >Last Updated</span
+                  >
+                  <span
+                    id="dataTanggal"
+                    class="text-sm font-bold text-white leading-tight"
+                    >Memuat...</span
+                  >
+                </div>
               </div>
 
               <!-- Status Live -->
-              <div class="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-2">
-                <span class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-badge" id="statusIndicator"></span>
-                <span class="text-xs font-bold uppercase tracking-wide" id="statusText">Live</span>
+              <div
+                class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5"
+              >
+                <span
+                  class="w-2 h-2 bg-emerald-400 rounded-full pulse-badge"
+                  id="statusIndicator"
+                ></span>
+                <span
+                  class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider"
+                  id="statusText"
+                  >LIVE</span
+                >
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <!-- Search Section -->
-        <section class="card-hover bg-white rounded-xl shadow-md p-4 sm:p-6 animate-fade-in">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div class="w-full sm:w-48 relative">
-              <select id="searchCategory" onchange="searchMerchant()" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-700 bg-white cursor-pointer appearance-none">
-                <option value="all">Semua Kategori</option>
-                <option value="namaKanca">Nama Kanca</option>
-                <option value="uker">Nama Uker</option>
-                <option value="tid">TID</option>
-                <option value="mid">MID</option>
-                <option value="nama">Nama Merchant</option>
-                <option value="pemrakarsa">Nama RMFT</option>
+      <main
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6"
+      >
+        <!-- Search & Filter Section -->
+        <section
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme animate-fade-in"
+        >
+          <div class="flex flex-col xl:flex-row gap-4">
+            <!-- Search Text Group -->
+            <div class="flex-1 flex flex-col sm:flex-row gap-4">
+              <div class="w-full sm:w-56 relative shrink-0">
+                <select
+                  id="searchCategory"
+                  onchange="searchMerchant()"
+                  class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none text-slate-700 dark:text-slate-200 cursor-pointer appearance-none transition-theme text-sm font-medium"
+                >
+                  <option value="all">Semua Kategori</option>
+                  <option value="namaKanca">Nama Kanca</option>
+                  <option value="uker">Nama Uker</option>
+                  <option value="tid">TID</option>
+                  <option value="mid">MID</option>
+                  <option value="nama">Nama Merchant</option>
+                  <option value="pemrakarsa">Nama RMFT</option>
+                </select>
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    class="w-4 h-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="flex-1 relative">
+                <div
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    class="w-4 h-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="searchInput"
+                  onkeyup="searchMerchant()"
+                  placeholder="Masukkan kata kunci pencarian..."
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-theme text-slate-700 dark:text-slate-200 placeholder-slate-400 text-sm"
+                />
+              </div>
+            </div>
+
+            <!-- SV Filter Group -->
+            <div
+              class="w-full xl:w-auto flex shadow-sm rounded-lg border border-slate-300 dark:border-slate-600 transition-theme bg-slate-50 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-brand-500/50 focus-within:border-brand-500 shrink-0"
+            >
+              <select
+                id="svFilterType"
+                onchange="searchMerchant()"
+                class="px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 cursor-pointer appearance-none text-sm font-medium border-r border-slate-300 dark:border-slate-600"
+              >
+                <option value="all">Filter SV</option>
+                <option value=">=">SV ≥ (Min)</option>
+                <option value="<=">SV ≤ (Max)</option>
               </select>
-              <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
+              <input
+                type="number"
+                id="svFilterValue"
+                onkeyup="searchMerchant()"
+                placeholder="Nominal (Cth: 15000000)"
+                class="w-full sm:w-48 px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400 text-sm"
+              />
             </div>
-            <div class="flex-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
+            <!-- Button Group -->
+            <div class="flex items-center gap-3 w-full xl:w-auto shrink-0">
+              <button
+                onclick="clearSearch()"
+                class="flex-1 xl:flex-none px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm shadow-sm"
+              >
+                Clear
+              </button>
+              <button
+                onclick="handleRefresh()"
+                class="flex-1 xl:flex-none px-5 py-2.5 bg-corporate-600 hover:bg-corporate-500 text-white border border-corporate-600 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  ></path>
                 </svg>
-              </div>
-              <input type="text" id="searchInput" onkeyup="searchMerchant()" placeholder="Masukkan kata kunci pencarian..." class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-200 text-gray-700 placeholder-gray-400" />
+                Refresh
+              </button>
             </div>
-            <button onclick="clearSearch()" class="btn-action px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200 whitespace-nowrap">
-              Clear
-            </button>
-            <button onclick="handleRefresh()" class="btn-action px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-secondary flex items-center gap-2 whitespace-nowrap">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              Refresh
-            </button>
           </div>
         </section>
 
         <!-- Charts Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 0.1s">
+        <section
+          class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in"
+          style="animation-delay: 0.1s"
+        >
           <!-- Chart 1: Delta SV per Cabang -->
-          <div class="card-hover bg-white rounded-xl shadow-md p-6 lg:col-span-2">
-            <div class="flex justify-between items-start">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-2 transition-theme"
+          >
+            <div class="flex justify-between items-start mb-6">
               <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-1">Sales Volume MOM</h2>
-                <p class="text-xs text-gray-500 mb-4">Dalam Juta Rupiah (Berdasarkan filter)</p>
+                <h2 class="text-base font-bold text-slate-800 dark:text-white">
+                  Sales Volume MoM
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Dalam Juta Rupiah (Sesuai filter)
+                </p>
               </div>
-              <button onclick="downloadChart('branchChart', 'Sales_Volume_MOM.png')" class="btn-action p-1.5 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Download PNG">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <button
+                onclick="downloadChart('branchChart', 'Sales_Volume_MOM.png')"
+                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+                title="Download PNG"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
+                </svg>
               </button>
             </div>
-            <div class="relative min-h-[400px] w-full">
+            <div class="relative min-h-[350px] w-full">
               <canvas id="branchChart"></canvas>
             </div>
           </div>
+
           <!-- Chart 2: Donut Produktivitas Total -->
-          <div class="card-hover bg-white rounded-xl shadow-md p-6">
-            <div class="flex justify-between items-start">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme"
+          >
+            <div class="flex justify-between items-start mb-6">
               <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-1">Status Produktivitas</h2>
-                <p class="text-xs text-gray-500 mb-4">Merchant Produktif vs Non-Produktif</p>
+                <h2 class="text-base font-bold text-slate-800 dark:text-white">
+                  Status Produktivitas
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Produktif vs Non-Produktif
+                </p>
               </div>
-              <button onclick="downloadChart('overallProductivityChart', 'Status_Produktivitas.png')" class="btn-action p-1.5 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Download PNG">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <button
+                onclick="
+                  downloadChart(
+                    'overallProductivityChart',
+                    'Status_Produktivitas.png',
+                  )
+                "
+                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+                title="Download PNG"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
+                </svg>
               </button>
             </div>
-            <div class="relative h-64 w-full flex justify-center">
+            <div class="relative h-[250px] w-full flex justify-center">
               <canvas id="overallProductivityChart"></canvas>
             </div>
           </div>
+
           <!-- Chart 3: Produktivitas per Kanca -->
-          <div class="card-hover bg-white rounded-xl shadow-md p-6 lg:col-span-3">
-            <div class="flex justify-between items-start">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-3 transition-theme"
+          >
+            <div class="flex justify-between items-start mb-6">
               <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-1">Produktivitas Merchant</h2>
-                <p class="text-xs text-gray-500 mb-4">% Merchant Produktif (SV ≥ Rp 15 Juta)</p>
+                <h2 class="text-base font-bold text-slate-800 dark:text-white">
+                  Persentase Produktivitas Merchant
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  % Merchant Produktif
+                </p>
               </div>
-              <button onclick="downloadChart('productivityChart', 'Produktivitas_Merchant.png')" class="btn-action p-1.5 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Download PNG">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <button
+                onclick="
+                  downloadChart(
+                    'productivityChart',
+                    'Produktivitas_Merchant.png',
+                  )
+                "
+                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+                title="Download PNG"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
+                </svg>
               </button>
             </div>
-            <div class="relative min-h-[400px] w-full flex justify-center">
+            <div class="relative min-h-[350px] w-full flex justify-center">
               <canvas id="productivityChart"></canvas>
             </div>
           </div>
         </section>
 
         <!-- Top 25 Penurunan Section -->
-        <section class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in" style="animation-delay: 0.3s">
-          <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-red-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-semibold text-red-700">Top 25 Penurunan SV Terdalam</h2>
-              <p class="text-sm text-red-500 mt-0.5">Daftar merchant yang perlu di-follow up segera (berdasarkan filter)</p>
+        <section
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
+          style="animation-delay: 0.2s"
+        >
+          <div
+            class="px-5 py-4 border-b border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-theme"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-2 h-8 bg-red-500 rounded-full"></div>
+              <div>
+                <h2 class="text-base font-bold text-red-700 dark:text-red-400">
+                  At-Risk Merchants (Top 25 Penurunan)
+                </h2>
+                <p
+                  class="text-xs font-medium text-red-600/80 dark:text-red-400/80 mt-0.5"
+                >
+                  Prioritas monitoring segera berdasarkan filter aktif
+                </p>
+              </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <button onclick="downloadTop25CSV()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-200" title="Download CSV">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              <button
+                onclick="downloadTop25CSV()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
                 </svg>
                 CSV
               </button>
-              <button onclick="downloadTop25PDF()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-200" title="Download PDF">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <button
+                onclick="downloadTop25PDF()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
                 </svg>
                 PDF
               </button>
             </div>
           </div>
-          <div class="table-container overflow-auto max-h-80">
-            <table class="w-full">
-              <thead class="sticky-header danger-header">
-                <tr class="bg-red-600 text-white text-xs uppercase tracking-wider">
-                  <th class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10">No</th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('top25', 'nama')" data-table="top25">Merchant <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-top25-nama"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('top25', 'namaKanca')" data-table="top25">Kanca / Uker <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-top25-namaKanca"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('top25', 'tid')" data-table="top25">TID / MID <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-top25-tid"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('top25', 'pemrakarsa')" data-table="top25">Pemrakarsa <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-top25-pemrakarsa"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('top25', 'deltaSv')" data-table="top25">Δ SV <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-top25-deltaSv"></span></th>
+          <div class="custom-scrollbar overflow-auto max-h-[400px]">
+            <table class="w-full text-left border-collapse">
+              <thead
+                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+              >
+                <tr>
+                  <th
+                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
+                  >
+                    No
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('top25', 'nama')"
+                    data-table="top25"
+                  >
+                    Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-top25-nama"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('top25', 'namaKanca')"
+                    data-table="top25"
+                  >
+                    Kanca / Uker
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-top25-namaKanca"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('top25', 'tid')"
+                    data-table="top25"
+                  >
+                    Terminal Info
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-top25-tid"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('top25', 'pemrakarsa')"
+                    data-table="top25"
+                  >
+                    RMFT
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-top25-pemrakarsa"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('top25', 'deltaSv')"
+                    data-table="top25"
+                  >
+                    Δ MOM
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-top25-deltaSv"
+                    ></span>
+                  </th>
                 </tr>
               </thead>
-              <tbody id="top25Body" class="divide-y divide-gray-100">
+              <tbody
+                id="top25Body"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50"
+              >
                 <!-- Data Top 25 -->
               </tbody>
             </table>
           </div>
-          <!-- Pagination Controls Top 25 -->
-          <div id="paginationControlsTop25" class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50">
+          <!-- Pagination Top 25 -->
+          <div
+            id="paginationControlsTop25"
+            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500">Show</span>
-              <select id="itemsPerPageTop25" onchange="changeItemsPerPage('Top25')" class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white">
+              <span class="text-xs text-slate-500 dark:text-slate-400"
+                >Show</span
+              >
+              <select
+                id="itemsPerPageTop25"
+                onchange="changeItemsPerPage('Top25')"
+                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
+              >
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="25">25</option>
                 <option value="all">All</option>
               </select>
-              <span class="text-sm text-gray-500">entries</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500 mr-2" id="paginationInfoTop25">Showing 0 to 0 of 0</span>
-              <button onclick="prevPage('Top25')" id="btnPrevTop25" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Prev</button>
-              <button onclick="nextPage('Top25')" id="btnNextTop25" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Next</button>
+              <span
+                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
+                id="paginationInfoTop25"
+                >Showing 0 to 0 of 0</span
+              >
+              <button
+                onclick="prevPage('Top25')"
+                id="btnPrevTop25"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Prev
+              </button>
+              <button
+                onclick="nextPage('Top25')"
+                id="btnNextTop25"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Next
+              </button>
             </div>
           </div>
         </section>
 
         <!-- Result Table Section -->
-        <section class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in" style="animation-delay: 0.4s">
-          <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
+          style="animation-delay: 0.3s"
+        >
+          <div
+            class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
             <div>
-              <h2 class="text-lg font-semibold text-gray-800">Merchant Data</h2>
-              <p class="text-sm text-gray-500 mt-0.5">Click "Select" to add merchant to monitoring list</p>
+              <h2 class="text-base font-bold text-slate-800 dark:text-white">
+                Master Data Merchant
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Pilih merchant untuk dimasukkan ke daftar pantauan khusus
+              </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <span id="resultCount" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">0 records</span>
-              <button id="btnSelectAllToggle" onclick="toggleSelectAll()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors" title="Select All">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All
+              <span
+                id="resultCount"
+                class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-200 dark:border-slate-600"
+                >0 records</span
+              >
+              <button
+                id="btnSelectAllToggle"
+                onclick="toggleSelectAll()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 border border-brand-200 dark:border-brand-800/50 rounded-md text-xs font-medium hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors shadow-sm"
+                title="Select All"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                Select All
               </button>
-              <button onclick="downloadMerchantDataCSV()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100" title="Download CSV">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> CSV
+              <button
+                onclick="downloadMerchantDataCSV()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
+                title="Download CSV"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  ></path>
+                </svg>
+                Export CSV
               </button>
             </div>
           </div>
-          <div class="table-container overflow-auto max-h-96">
-            <table id="resultTable" class="w-full">
-              <thead class="sticky-header primary-header">
-                <tr class="bg-gradient-to-r from-primary to-secondary text-white text-xs uppercase tracking-wider">
-                  <th class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10">No</th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'nama')" data-table="result">Merchant <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-nama"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'namaKanca')" data-table="result">Kanca / Uker <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-namaKanca"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'tid')" data-table="result">TID / MID <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-tid"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'pemrakarsa')" data-table="result">Pemrakarsa <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-pemrakarsa"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'trxUpdate')" data-table="result">TRX <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-trxUpdate"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'svUpdate')" data-table="result">SV <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-svUpdate"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('result', 'deltaSv')" data-table="result">Δ Delta <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-result-deltaSv"></span></th>
-                  <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Action</th>
+          <div class="custom-scrollbar overflow-auto max-h-[500px]">
+            <table id="resultTable" class="w-full text-left border-collapse">
+              <thead
+                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+              >
+                <tr>
+                  <th
+                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
+                  >
+                    No
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'nama')"
+                    data-table="result"
+                  >
+                    Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-nama"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'namaKanca')"
+                    data-table="result"
+                  >
+                    Lokasi
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-namaKanca"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'tid')"
+                    data-table="result"
+                  >
+                    Terminal Info
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-tid"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'pemrakarsa')"
+                    data-table="result"
+                  >
+                    RMFT
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-pemrakarsa"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'trxUpdate')"
+                    data-table="result"
+                  >
+                    Trx
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-trxUpdate"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'svUpdate')"
+                    data-table="result"
+                  >
+                    SV
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-svUpdate"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('result', 'deltaSv')"
+                    data-table="result"
+                  >
+                    MoM Δ
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-result-deltaSv"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
-              <tbody id="resultBody" class="divide-y divide-gray-100">
+              <tbody
+                id="resultBody"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50"
+              >
                 <!-- Data rows will be inserted here -->
               </tbody>
             </table>
           </div>
-          <!-- Pagination Controls Result -->
-          <div id="paginationControlsResult" class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50">
+          <!-- Pagination Result -->
+          <div
+            id="paginationControlsResult"
+            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500">Show</span>
-              <select id="itemsPerPageResult" onchange="changeItemsPerPage('Result')" class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white">
+              <span class="text-xs text-slate-500 dark:text-slate-400"
+                >Show</span
+              >
+              <select
+                id="itemsPerPageResult"
+                onchange="changeItemsPerPage('Result')"
+                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
+              >
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
                 <option value="all">All</option>
               </select>
-              <span class="text-sm text-gray-500">entries</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500 mr-2" id="paginationInfoResult">Showing 0 to 0 of 0</span>
-              <button onclick="prevPage('Result')" id="btnPrevResult" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Prev</button>
-              <button onclick="nextPage('Result')" id="btnNextResult" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Next</button>
+              <span
+                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
+                id="paginationInfoResult"
+                >Showing 0 to 0 of 0</span
+              >
+              <button
+                onclick="prevPage('Result')"
+                id="btnPrevResult"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Prev
+              </button>
+              <button
+                onclick="nextPage('Result')"
+                id="btnNextResult"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Next
+              </button>
             </div>
           </div>
           <div id="emptyState" class="hidden py-16 text-center">
-            <svg class="w-24 h-24 mx-auto text-blue-100 mb-6 drop-shadow-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 4" />
-              <path d="M10 7V10L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.1" />
+            <svg
+              class="w-16 h-16 mx-auto text-slate-300 dark:text-slate-600 mb-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="3 4"
+              />
             </svg>
-            <p class="text-gray-500 font-semibold text-lg" id="emptyStateText">No merchants found</p>
-            <p class="text-gray-400 text-sm mt-2">Coba sesuaikan kata kunci atau filter pencarian.</p>
+            <p
+              class="text-slate-500 dark:text-slate-400 font-semibold"
+              id="emptyStateText"
+            >
+              Tidak ada data ditemukan
+            </p>
+            <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">
+              Coba sesuaikan kata kunci atau filter pencarian.
+            </p>
           </div>
         </section>
 
         <!-- Selected Data Table Section -->
-        <section class="card-hover bg-white rounded-xl shadow-md overflow-hidden animate-fade-in" style="animation-delay: 0.5s">
-          <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-semibold text-gray-800">Selected Merchants</h2>
-              <p class="text-sm text-gray-500 mt-0.5">Merchants added to monitoring list</p>
+        <section
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
+          style="animation-delay: 0.4s"
+        >
+          <div
+            class="px-5 py-4 border-b border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-theme"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-2 h-8 bg-emerald-500 rounded-full"></div>
+              <div>
+                <h2
+                  class="text-base font-bold text-emerald-800 dark:text-emerald-400"
+                >
+                  Monitoring List Terpilih
+                </h2>
+                <p
+                  class="text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80 mt-0.5"
+                >
+                  Daftar merchant yang sedang Anda pantau secara khusus
+                </p>
+              </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
-              <span id="selectedCount" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">0 selected</span>
-              <button onclick="downloadSelectedCSV()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm font-medium hover:bg-green-100" title="Download CSV">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> CSV
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                id="selectedCount"
+                class="bg-white/50 dark:bg-slate-900/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200 dark:border-emerald-800"
+                >0 selected</span
+              >
+              <button
+                onclick="downloadSelectedCSV()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
+              >
+                CSV
               </button>
-              <button onclick="downloadSelectedPDF()" class="btn-action flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100" title="Download PDF">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> PDF
+              <button
+                onclick="downloadSelectedPDF()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
+              >
+                PDF
               </button>
-              <button onclick="clearSelected()" class="btn-action px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">
+              <button
+                onclick="clearSelected()"
+                class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+              >
                 Clear All
               </button>
             </div>
           </div>
-          <div class="table-container overflow-auto max-h-64">
-            <table id="selectedTable" class="w-full">
-              <thead class="sticky-header success-header">
-                <tr class="bg-gradient-to-r from-green-600 to-green-500 text-white text-xs uppercase tracking-wider">
-                  <th class="px-4 py-3 text-center font-semibold whitespace-nowrap w-10">No</th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'nama')" data-table="selected">Merchant <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-nama"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'namaKanca')" data-table="selected">Kanca / Uker <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-namaKanca"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'tid')" data-table="selected">TID / MID <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-tid"></span></th>
-                  <th class="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'pemrakarsa')" data-table="selected">Pemrakarsa <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-pemrakarsa"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'trxUpdate')" data-table="selected">TRX <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-trxUpdate"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'svUpdate')" data-table="selected">SV <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-svUpdate"></span></th>
-                  <th class="px-4 py-3 text-right font-semibold whitespace-nowrap cursor-pointer hover:bg-black/10 select-none" onclick="requestSort('selected', 'deltaSv')" data-table="selected">Δ Delta <span class="sort-icon text-[10px] ml-1 opacity-80" id="icon-selected-deltaSv"></span></th>
-                  <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Action</th>
+          <div class="custom-scrollbar overflow-auto max-h-[400px]">
+            <table id="selectedTable" class="w-full text-left border-collapse">
+              <thead
+                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+              >
+                <tr>
+                  <th
+                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
+                  >
+                    No
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'nama')"
+                    data-table="selected"
+                  >
+                    Merchant
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-nama"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'namaKanca')"
+                    data-table="selected"
+                  >
+                    Lokasi
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-namaKanca"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'tid')"
+                    data-table="selected"
+                  >
+                    Terminal Info
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-tid"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'pemrakarsa')"
+                    data-table="selected"
+                  >
+                    RMFT
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-pemrakarsa"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'trxUpdate')"
+                    data-table="selected"
+                  >
+                    Trx
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-trxUpdate"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'svUpdate')"
+                    data-table="selected"
+                  >
+                    SV
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-svUpdate"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
+                    onclick="requestSort('selected', 'deltaSv')"
+                    data-table="selected"
+                  >
+                    MoM Δ
+                    <span
+                      class="sort-icon text-[10px] ml-1 opacity-60"
+                      id="icon-selected-deltaSv"
+                    ></span>
+                  </th>
+                  <th
+                    class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
-              <tbody id="selectedBody" class="divide-y divide-gray-100">
-                <!-- Selected rows will be inserted here -->
+              <tbody
+                id="selectedBody"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50"
+              >
+                <!-- Selected rows -->
               </tbody>
             </table>
           </div>
-          <!-- Pagination Controls Selected -->
-          <div id="paginationControlsSelected" class="hidden px-4 sm:px-6 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50">
+          <!-- Pagination Selected -->
+          <div
+            id="paginationControlsSelected"
+            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500">Show</span>
-              <select id="itemsPerPageSelected" onchange="changeItemsPerPage('Selected')" class="border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white">
+              <span class="text-xs text-slate-500 dark:text-slate-400"
+                >Show</span
+              >
+              <select
+                id="itemsPerPageSelected"
+                onchange="changeItemsPerPage('Selected')"
+                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
+              >
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="50">50</option>
                 <option value="all">All</option>
               </select>
-              <span class="text-sm text-gray-500">entries</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500 mr-2" id="paginationInfoSelected">Showing 0 to 0 of 0</span>
-              <button onclick="prevPage('Selected')" id="btnPrevSelected" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Prev</button>
-              <button onclick="nextPage('Selected')" id="btnNextSelected" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Next</button>
+              <span
+                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
+                id="paginationInfoSelected"
+                >Showing 0 to 0 of 0</span
+              >
+              <button
+                onclick="prevPage('Selected')"
+                id="btnPrevSelected"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Prev
+              </button>
+              <button
+                onclick="nextPage('Selected')"
+                id="btnNextSelected"
+                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+              >
+                Next
+              </button>
             </div>
           </div>
           <div id="selectedEmptyState" class="py-12 text-center">
-            <svg class="w-16 h-16 mx-auto text-green-200 mb-4 drop-shadow-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
+            <svg
+              class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
-            <p class="text-gray-500 font-medium">Belum ada merchant yang dipilih.</p>
-            <p class="text-sm text-gray-400 mt-1">Klik tombol "Select" pada tabel di atas untuk memantau.</p>
+            <p class="text-slate-500 dark:text-slate-400 font-medium text-sm">
+              Belum ada merchant yang dipilih.
+            </p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              Gunakan tombol "Select" pada Master Data di atas.
+            </p>
           </div>
         </section>
 
         <!-- Summary Cards & Activity Log Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 0.6s">
-          <!-- Summary Cards Section -->
-          <section class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-primary">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Delta Trx (Selected)</p>
-                  <p id="totalTrx" class="text-3xl font-bold text-gray-600 mt-2 transition-colors duration-300">0</p>
-                </div>
-                <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in"
+          style="animation-delay: 0.5s"
+        >
+          <section class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Summary Trx -->
+            <div
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Total Δ Trx (Selected)
+                </p>
+                <p
+                  id="totalTrx"
+                  class="text-2xl font-bold text-slate-800 dark:text-white mt-2 transition-colors duration-300"
+                >
+                  0
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center border border-blue-100 dark:border-blue-800/50"
+              >
+                <svg
+                  class="w-6 h-6 text-brand-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
               </div>
             </div>
-            <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-accent">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Delta SV (Selected)</p>
-                  <p id="totalSv" class="text-3xl font-bold text-gray-600 mt-2 transition-colors duration-300">Rp 0</p>
-                </div>
-                <div class="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center">
-                  <svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+
+            <!-- Summary SV -->
+            <div
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Total Δ SV (Selected)
+                </p>
+                <p
+                  id="totalSv"
+                  class="text-2xl font-bold text-slate-800 dark:text-white mt-2 transition-colors duration-300"
+                >
+                  Rp 0
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center border border-emerald-100 dark:border-emerald-800/50"
+              >
+                <svg
+                  class="w-6 h-6 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
             </div>
           </section>
 
-          <!-- Activity Log Section -->
-          <section class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-400 lg:col-span-1">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-800 uppercase tracking-wide">Activity Log</h2>
-              <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">Last 2</span>
+          <!-- Activity Log -->
+          <section
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-1 transition-theme"
+          >
+            <div
+              class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700/50"
+            >
+              <h2 class="text-sm font-bold text-slate-800 dark:text-white">
+                Activity Log
+              </h2>
+              <span
+                class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded font-medium"
+                >Last 2</span
+              >
             </div>
-            <ul id="activityLogList" class="space-y-3">
-              <!-- Logs akan diisi dari JavaScript -->
+            <ul id="activityLogList" class="space-y-4">
+              <!-- Logs -->
             </ul>
           </section>
         </div>
       </main>
 
-      <!-- Footer -->
-      <footer class="bg-white border-t border-gray-100 mt-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div class="h-[2px] w-24 mx-auto bg-gradient-to-r from-primary via-secondary to-accent rounded-full mb-4"></div>
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-2 text-center">
-            <span class="text-sm text-gray-500">
-              © 2026
-              <span class="font-semibold text-gray-700">Bayu Dwi Suharminto</span>
-            </span>
-            <span class="hidden sm:inline text-gray-300">|</span>
-            <a href="https://instagram.com/bayudwis_07" target="_blank" class="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-all duration-300 group">
-              <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zm0 1.5h8.5c2.34 0 4.25 1.91 4.25 4.25v8.5c0 2.34-1.91 4.25-4.25 4.25h-8.5c-2.34 0-4.25-1.91-4.25-4.25v-8.5c0-2.34 1.91-4.25 4.25-4.25zm9.25 2.25a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 1.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7z" />
-              </svg>
-              <span class="hover:underline">@bayudwis_07</span>
-            </a>
+      <!-- Footer Korporat -->
+      <footer
+        class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 mt-10 transition-theme"
+      >
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div
+            class="flex flex-col md:flex-row items-center justify-between gap-4"
+          >
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide"
+            >
+              Merchant Monitoring System &copy; 2026 Internal Banking Dashboard
+            </p>
+            <div
+              class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400"
+            >
+              <span
+                >Developed by
+                <span class="font-bold text-slate-700 dark:text-slate-200"
+                  >Bayu Dwi Suharminto</span
+                ></span
+              >
+              <span class="hidden sm:inline text-slate-300 dark:text-slate-700"
+                >|</span
+              >
+              <a
+                href="https://instagram.com/bayudwis_07"
+                target="_blank"
+                class="flex items-center gap-1.5 hover:text-brand-500 dark:hover:text-brand-400 transition-colors group"
+              >
+                <svg
+                  class="w-3.5 h-3.5 group-hover:scale-110 transition-transform"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zm0 1.5h8.5c2.34 0 4.25 1.91 4.25 4.25v8.5c0 2.34-1.91 4.25-4.25 4.25h-8.5c-2.34 0-4.25-1.91-4.25-4.25v-8.5c0-2.34 1.91-4.25 4.25-4.25zm9.25 2.25a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 1.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7z"
+                  />
+                </svg>
+                <span class="font-medium">@bayudwis_07</span>
+              </a>
+            </div>
           </div>
-          <p class="text-xs text-gray-400 text-center mt-3 tracking-wide">Merchant Monitoring System • Internal Banking Dashboard</p>
         </div>
       </footer>
     </div>
 
     <script>
+      // ==========================================
+      // DARK MODE LOGIC
+      // ==========================================
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const darkIcon = document.getElementById("themeToggleDarkIcon");
+      const lightIcon = document.getElementById("themeToggleLightIcon");
+
+      function updateThemeIcons() {
+        if (document.documentElement.classList.contains("dark")) {
+          darkIcon.classList.add("hidden");
+          lightIcon.classList.remove("hidden");
+        } else {
+          lightIcon.classList.add("hidden");
+          darkIcon.classList.remove("hidden");
+        }
+      }
+
+      themeToggleBtn.addEventListener("click", function () {
+        document.documentElement.classList.toggle("dark");
+
+        if (document.documentElement.classList.contains("dark")) {
+          localStorage.setItem("color-theme", "dark");
+        } else {
+          localStorage.setItem("color-theme", "light");
+        }
+
+        updateThemeIcons();
+        updateChartsTheme(); // Update warna teks/grid chart saat theme berganti
+      });
+
+      // Init Theme Icons
+      updateThemeIcons();
+
+      // ==========================================
+      // ORIGINAL VARIABLES & LOGIC
+      // ==========================================
       const Blow_Job = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2";
       const Hand_Job = "J6cDZYQ3AtSlhUbHZPYnBqYzVRbUlUN0JHNTZWS";
       const Sakura = "jNqanRYSV9tQ1dmdDZrZVlFbzJ2R1hBWGtYeXZwbC";
       const Open_BO = "00Z3VUUGMvZXhlYz90b2tlbj1CbHVlcmltMzIxISE=";
-
       const Berkualitas = atob(Blow_Job + Hand_Job + Sakura + Open_BO);
 
-      // Konfigurasi untuk Visitor Counter
       const VISITOR_NAMESPACE = "merchant_monitoring_bds_dashboard";
       const VISITOR_KEY = "unique_device_visits";
 
-      //Plugin untuk Chart.js
       Chart.register(ChartDataLabels);
 
       let merchantData = [];
       let selectedMerchants = [];
-
       let prevTotalTrx = 0;
       let prevTotalSv = 0;
 
@@ -621,6 +1445,9 @@
 
       const activityLogs = [];
 
+      // ==========================================
+      // UTILITY FUNCTIONS
+      // ==========================================
       function formatCurrency(num) {
         return "Rp " + num.toLocaleString("id-ID");
       }
@@ -630,9 +1457,11 @@
       }
 
       function getDeltaClass(delta) {
-        if (delta > 0) return "text-green-600 bg-green-50";
-        if (delta < 0) return "text-red-600 bg-red-50";
-        return "text-gray-600 bg-gray-50";
+        if (delta > 0)
+          return "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20";
+        if (delta < 0)
+          return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20";
+        return "text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800";
       }
 
       function getDeltaPrefix(delta) {
@@ -647,9 +1476,7 @@
           const progress = Math.min((timestamp - startTimestamp) / duration, 1);
           const easeOut = 1 - Math.pow(1 - progress, 4);
           const currentVal = start + (end - start) * easeOut;
-
           obj.textContent = prefix + formatter(Math.round(currentVal));
-
           if (progress < 1) {
             window.requestAnimationFrame(step);
           } else {
@@ -659,12 +1486,9 @@
         window.requestAnimationFrame(step);
       }
 
-      function animateTableUpdate(tbody) {
-        tbody.classList.remove("fade-in-table");
-        void tbody.offsetWidth;
-        tbody.classList.add("fade-in-table");
-      }
-
+      // ==========================================
+      // API & LOGS
+      // ==========================================
       async function getUserIP() {
         try {
           const response = await fetch("https://api.ipify.org?format=json");
@@ -704,9 +1528,7 @@
         });
 
         activityLogs.unshift({ time: timeStr, message });
-        if (activityLogs.length > 2) {
-          activityLogs.pop();
-        }
+        if (activityLogs.length > 2) activityLogs.pop();
         renderActivityLog();
 
         const userIP = await getUserIP();
@@ -716,9 +1538,7 @@
         try {
           fetch(Berkualitas, {
             method: "POST",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8",
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               message: message,
               ip: userIP,
@@ -727,7 +1547,7 @@
             }),
           });
         } catch (error) {
-          console.error("Gagal mengirim log ke Google Sheet:", error);
+          console.error("Gagal mengirim log:", error);
         }
       }
 
@@ -736,15 +1556,16 @@
         if (!list) return;
         list.innerHTML = "";
         if (activityLogs.length === 0) {
-          list.innerHTML = '<li class="text-sm text-gray-400 italic">Belum ada aktifitas...</li>';
+          list.innerHTML =
+            '<li class="text-xs text-slate-400 italic">Belum ada aktifitas...</li>';
           return;
         }
 
         activityLogs.forEach((log, index) => {
           list.innerHTML += `
             <li class="flex items-start gap-3 text-sm animate-fade-in" style="animation-delay: ${index * 0.05}s">
-                <span class="text-[10px] text-gray-400 whitespace-nowrap mt-1 font-mono">[${log.time}]</span>
-                <span class="text-gray-600 flex-1 leading-snug">${log.message}</span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap mt-1 font-mono font-medium">[${log.time}]</span>
+                <span class="text-slate-700 dark:text-slate-300 flex-1 leading-snug text-xs font-medium">${log.message}</span>
             </li>
           `;
         });
@@ -762,18 +1583,15 @@
           const response = await fetch(proxyUrl);
           if (!response.ok) throw new Error("API Proxy Error");
           const data = await response.json();
-
           if (data && data.count !== undefined) {
             countEl.textContent = formatNumber(data.count);
-            if (!hasVisited) {
+            if (!hasVisited)
               localStorage.setItem("has_visited_mms_dashboard", "true");
-            }
-          } else {
-            throw new Error("Invalid data format");
-          }
+          } else throw new Error("Invalid data format");
         } catch (e) {
-          console.warn("API Counter gagal, menggunakan local fallback:", e);
-          let localCount = parseInt(localStorage.getItem("local_visitor_count") || "1245");
+          let localCount = parseInt(
+            localStorage.getItem("local_visitor_count") || "1245",
+          );
           if (!hasVisited) {
             localCount += 1;
             localStorage.setItem("has_visited_mms_dashboard", "true");
@@ -783,6 +1601,9 @@
         }
       }
 
+      // ==========================================
+      // FETCH DATA
+      // ==========================================
       async function fetchSheetData() {
         const tbody = document.getElementById("resultBody");
         const emptyState = document.getElementById("emptyState");
@@ -793,10 +1614,19 @@
 
         tbody.innerHTML = "";
         emptyState.classList.remove("hidden");
-        emptyStateText.innerHTML = '<span class="loader"></span> Sabar Om,loading...';
-        countEl.textContent = "Sabar Om...";
-        statusText.textContent = "Sabar sayangg...";
-        statusIndicator.classList.replace("bg-green-400", "bg-yellow-400");
+        emptyStateText.innerHTML =
+          '<span class="loader"></span> <span class="ml-2">Memuat Data...</span>';
+        countEl.textContent = "Loading...";
+        statusText.textContent = "CONNECTING";
+        statusIndicator.classList.replace("bg-emerald-400", "bg-amber-400");
+        statusIndicator.parentElement.classList.replace(
+          "bg-emerald-500/10",
+          "bg-amber-500/10",
+        );
+        statusIndicator.parentElement.classList.replace(
+          "border-emerald-500/20",
+          "border-amber-500/20",
+        );
 
         try {
           const response = await fetch(Berkualitas);
@@ -804,8 +1634,12 @@
           const rawData = Array.isArray(data) ? data : data.data || [];
 
           merchantData = rawData.map((item) => {
-            const trxLalu = Number(item.trxLast || item.trxLalu || item.TRX_LALU || 0);
-            const svLalu = Number(item.svLast || item.svLalu || item.SV_LALU || 0);
+            const trxLalu = Number(
+              item.trxLast || item.trxLalu || item.TRX_LALU || 0,
+            );
+            const svLalu = Number(
+              item.svLast || item.svLalu || item.SV_LALU || 0,
+            );
             const trxUpdate = Number(item.trxUpdate || item.TRX_UPDATE || 0);
             const svUpdate = Number(item.svUpdate || item.SV_UPDATE || 0);
 
@@ -828,15 +1662,20 @@
             };
           });
 
-          emptyStateText.textContent = "No merchants found";
-          statusText.textContent = "Done Bangg";
-          statusIndicator.classList.replace("bg-yellow-400", "bg-green-400");
+          emptyStateText.textContent = "Tidak ada data ditemukan";
+          statusText.textContent = "LIVE";
+          statusIndicator.classList.replace("bg-amber-400", "bg-emerald-400");
+          statusIndicator.parentElement.classList.replace(
+            "bg-amber-500/10",
+            "bg-emerald-500/10",
+          );
+          statusIndicator.parentElement.classList.replace(
+            "border-amber-500/20",
+            "border-emerald-500/20",
+          );
 
-          if (data.currentDate) {
-            setCurrentDate(new Date(data.currentDate));
-          } else {
-            setCurrentDate(new Date());
-          }
+          if (data.currentDate) setCurrentDate(new Date(data.currentDate));
+          else setCurrentDate(new Date());
 
           pagination.Result.current = 1;
           pagination.Top25.current = 1;
@@ -850,18 +1689,30 @@
           updateSortIcons("selected");
         } catch (error) {
           console.error("Error fetching data:", error);
-          emptyStateText.innerHTML = '<span class="text-red-500">Gagal mengambil data. Pastikan Apps Script Web App bisa diakses.</span>';
-          statusText.textContent = "Offline";
-          statusIndicator.classList.replace("bg-green-400", "bg-red-500");
+          emptyStateText.innerHTML =
+            '<span class="text-red-500">Gagal mengambil data. Server tidak merespon.</span>';
+          statusText.textContent = "OFFLINE";
+          statusIndicator.classList.replace("bg-amber-400", "bg-red-500");
+          statusIndicator.parentElement.classList.replace(
+            "bg-amber-500/10",
+            "bg-red-500/10",
+          );
+          statusIndicator.parentElement.classList.replace(
+            "border-amber-500/20",
+            "border-red-500/20",
+          );
           statusIndicator.classList.remove("pulse-badge");
         }
       }
 
       function handleRefresh() {
-        addActivityLog("Memperbarui data (Refresh)");
+        addActivityLog("Memperbarui data server (Refresh)");
         fetchSheetData();
       }
 
+      // ==========================================
+      // PAGINATION & SORTING LOGIC
+      // ==========================================
       function handlePagination(dataArray, tableType) {
         let itemsPerPage = pagination[tableType].itemsPerPage;
         let currentPage = pagination[tableType].current;
@@ -869,12 +1720,10 @@
         if (itemsPerPage !== "all") {
           const totalItems = dataArray.length;
           const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
           if (currentPage > totalPages) currentPage = totalPages;
           if (currentPage < 1) currentPage = 1;
 
           pagination[tableType].current = currentPage;
-
           const startIndex = (currentPage - 1) * itemsPerPage;
           const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
@@ -898,22 +1747,22 @@
       }
 
       function updatePaginationUI(tableType, pageInfo) {
-        const controls = document.getElementById(`paginationControls${tableType}`);
+        const controls = document.getElementById(
+          `paginationControls${tableType}`,
+        );
         const info = document.getElementById(`paginationInfo${tableType}`);
         const btnPrev = document.getElementById(`btnPrev${tableType}`);
         const btnNext = document.getElementById(`btnNext${tableType}`);
 
         if (!controls) return;
-
         if (pageInfo.totalItems === 0) {
           controls.classList.add("hidden");
           return;
         }
 
         controls.classList.remove("hidden");
-
         if (pagination[tableType].itemsPerPage !== "all") {
-          info.textContent = `Menampilkan ${pageInfo.startIndex + 1} hingga ${pageInfo.endIndex} dari ${pageInfo.totalItems} data`;
+          info.textContent = `Menampilkan ${pageInfo.startIndex + 1} - ${pageInfo.endIndex} dari ${pageInfo.totalItems}`;
           btnPrev.disabled = pageInfo.currentPage === 1;
           btnNext.disabled = pageInfo.currentPage === pageInfo.totalPages;
         } else {
@@ -925,9 +1774,9 @@
 
       function changeItemsPerPage(tableType) {
         const select = document.getElementById(`itemsPerPage${tableType}`);
-        pagination[tableType].itemsPerPage = select.value === "all" ? "all" : parseInt(select.value);
+        pagination[tableType].itemsPerPage =
+          select.value === "all" ? "all" : parseInt(select.value);
         pagination[tableType].current = 1;
-
         if (tableType === "Result") renderResultTable(getFilteredData());
         if (tableType === "Top25") renderTop25Table();
         if (tableType === "Selected") renderSelectedTable();
@@ -954,12 +1803,10 @@
         return [...dataArray].sort((a, b) => {
           let valA = a[sortConfig.key];
           let valB = b[sortConfig.key];
-
           if (typeof valA === "string") {
             valA = valA.toLowerCase();
             valB = valB.toLowerCase();
           }
-
           if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
           if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
           return 0;
@@ -967,13 +1814,13 @@
       }
 
       function requestSort(table, key) {
-        if (sortConfigs[table].key === key) {
-          sortConfigs[table].direction = sortConfigs[table].direction === "asc" ? "desc" : "asc";
-        } else {
+        if (sortConfigs[table].key === key)
+          sortConfigs[table].direction =
+            sortConfigs[table].direction === "asc" ? "desc" : "asc";
+        else {
           sortConfigs[table].key = key;
           sortConfigs[table].direction = "asc";
         }
-
         updateSortIcons(table);
 
         if (table === "result") {
@@ -989,111 +1836,158 @@
       }
 
       function updateSortIcons(table) {
-        document.querySelectorAll(`th[data-table="${table}"] .sort-icon`).forEach((el) => (el.innerHTML = ""));
+        document
+          .querySelectorAll(`th[data-table="${table}"] .sort-icon`)
+          .forEach((el) => (el.innerHTML = ""));
         const config = sortConfigs[table];
         if (config.key) {
           const iconEl = document.getElementById(`icon-${table}-${config.key}`);
-          if (iconEl) {
-            iconEl.innerHTML = config.direction === "asc" ? "&#9650;" : "&#9660;";
-          }
+          if (iconEl)
+            iconEl.innerHTML =
+              config.direction === "asc" ? "&#9650;" : "&#9660;";
         }
+      }
+
+      // ==========================================
+      // UI RENDER: TABLES
+      // ==========================================
+      // Fungsi bantuan untuk membuat baris tabel standar untuk menjaga konsistensi UI & Mode Gelap
+      function generateTableRowHTML(
+        item,
+        rowNo,
+        isSelected,
+        showActionBtn = "Select",
+      ) {
+        const dTrx = item.deltaTrx;
+        const dSv = item.deltaSv;
+
+        let actionBtnHTML = "";
+        if (showActionBtn === "Select") {
+          actionBtnHTML = `
+            <button onclick="selectMerchant('${item.tid}')" class="px-3 py-1.5 rounded text-xs font-semibold transition-colors ${isSelected ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed" : "bg-brand-500 text-white hover:bg-brand-600 shadow-sm"}" ${isSelected ? "disabled" : ""}>
+              ${isSelected ? "Added" : "Select"}
+            </button>`;
+        } else if (showActionBtn === "Remove") {
+          actionBtnHTML = `
+            <button onclick="removeMerchant('${item.tid}')" class="px-3 py-1.5 bg-red-500 text-white rounded text-xs font-semibold hover:bg-red-600 shadow-sm transition-colors">
+              Remove
+            </button>`;
+        } else if (showActionBtn === "Top25") {
+          // Tidak ada tombol action di tabel top 25
+          actionBtnHTML = `
+             <span class="inline-flex px-2 py-1 rounded text-xs font-bold border ${dSv > 0 ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"}">
+                ${getDeltaPrefix(dSv)}${formatCurrency(dSv)}
+             </span>`;
+        }
+
+        const isTop25 = showActionBtn === "Top25";
+
+        return `
+          <td class="px-5 py-3 text-sm text-center text-slate-500 dark:text-slate-400 whitespace-nowrap">${rowNo}</td>
+          <td class="px-5 py-3 text-sm font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">${item.nama}</td>
+          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
+            <div class="flex flex-col gap-1">
+                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-6 inline-block">KC:</span> ${item.namaKanca}</div>
+                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-6 inline-block">UK:</span> ${item.uker}</div>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 font-mono whitespace-nowrap">
+            <div class="flex flex-col gap-1">
+                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-4 inline-block">T:</span> ${item.tid}</div>
+                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-4 inline-block">M:</span> ${item.mid}</div>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">${item.pemrakarsa}</td>
+          
+          ${
+            isTop25
+              ? `
+             <td class="px-5 py-3 text-right whitespace-nowrap">${actionBtnHTML}</td>
+          `
+              : `
+          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 text-right whitespace-nowrap">
+            <div class="flex justify-between gap-4 mb-1">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">MOM:</span> <span>${formatNumber(item.trxLalu)}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">NOW:</span> <span class="font-semibold text-slate-800 dark:text-slate-200">${formatNumber(item.trxUpdate)}</span>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 text-right whitespace-nowrap">
+            <div class="flex justify-between gap-4 mb-1">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">MOM:</span> <span>${formatCurrency(item.svLalu)}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">NOW:</span> <span class="font-semibold text-slate-800 dark:text-slate-200">${formatCurrency(item.svUpdate)}</span>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-right whitespace-nowrap">
+            <div class="flex justify-between gap-3 mb-1 text-xs">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">TRX:</span>
+                <span class="${dTrx > 0 ? "text-emerald-600 dark:text-emerald-400" : dTrx < 0 ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-slate-400"} font-bold">${getDeltaPrefix(dTrx)}${formatNumber(dTrx)}</span>
+            </div>
+            <div class="flex justify-between gap-3 text-xs">
+                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">SV:</span>
+                <span class="${dSv > 0 ? "text-emerald-600 dark:text-emerald-400" : dSv < 0 ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-slate-400"} font-bold">${getDeltaPrefix(dSv)}${formatCurrency(dSv)}</span>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-center whitespace-nowrap">${actionBtnHTML}</td>
+          `
+          }
+        `;
       }
 
       function renderResultTable(data) {
         const tbody = document.getElementById("resultBody");
         const emptyState = document.getElementById("emptyState");
         const countEl = document.getElementById("resultCount");
-
         tbody.innerHTML = "";
 
         if (!data || data.length === 0) {
           emptyState.classList.remove("hidden");
           countEl.textContent = "0 records";
-          document.getElementById("paginationControlsResult").classList.add("hidden");
+          document
+            .getElementById("paginationControlsResult")
+            .classList.add("hidden");
           updateSelectAllButtonState();
           return;
         }
 
         emptyState.classList.add("hidden");
-        countEl.textContent = `${data.length} records`;
+        countEl.textContent = `${formatNumber(data.length)} records`;
 
         const pageInfo = handlePagination(data, "Result");
         updatePaginationUI("Result", pageInfo);
 
         pageInfo.paginatedData.forEach((item, index) => {
-          const deltaTrx = item.deltaTrx;
-          const deltaSv = item.deltaSv;
           const isSelected = selectedMerchants.some((m) => m.tid === item.tid);
           const rowNo = pageInfo.startIndex + index + 1;
-
           const row = document.createElement("tr");
-          row.className = `row-hover ${isSelected ? "bg-blue-50" : "bg-white"}`;
-          row.innerHTML = `
-            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
-            <td class="px-4 py-3 text-sm text-gray-800 font-medium whitespace-nowrap">${item.nama}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">KC:</span> ${item.namaKanca}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">UK:</span> ${item.uker}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">T:</span> ${item.tid}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">M:</span> ${item.mid}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${item.pemrakarsa}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">MOM:</span> <span>${formatNumber(item.trxLalu)}</span>
-              </div>
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">Now:</span> <span>${formatNumber(item.trxUpdate)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">MOM:</span> <span>${formatCurrency(item.svLalu)}</span>
-              </div>
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">Now:</span> <span>${formatCurrency(item.svUpdate)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3 mb-1 text-xs">
-                  <span class="font-semibold text-[10px] text-gray-400">Trx:</span>
-                  <span class="${deltaTrx > 0 ? 'text-green-600' : deltaTrx < 0 ? 'text-red-600' : 'text-gray-600'} font-semibold">${getDeltaPrefix(deltaTrx)}${formatNumber(deltaTrx)}</span>
-              </div>
-              <div class="flex justify-between gap-3 text-xs">
-                  <span class="font-semibold text-[10px] text-gray-400">SV:</span>
-                  <span class="${deltaSv > 0 ? 'text-green-600' : deltaSv < 0 ? 'text-red-600' : 'text-gray-600'} font-semibold">${getDeltaPrefix(deltaSv)}${formatCurrency(deltaSv)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-center whitespace-nowrap">
-              <button onclick="selectMerchant('${item.tid}')" class="btn-action px-3 py-1.5 rounded-lg text-xs font-medium ${isSelected ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-primary text-white hover:bg-secondary"}" ${isSelected ? "disabled" : ""}>
-                ${isSelected ? "Selected" : "Select"}
-              </button>
-            </td>
-          `;
+          row.className = `transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${isSelected ? "bg-brand-50/50 dark:bg-brand-900/10" : "bg-white dark:bg-slate-800"}`;
+          row.innerHTML = generateTableRowHTML(
+            item,
+            rowNo,
+            isSelected,
+            "Select",
+          );
           tbody.appendChild(row);
         });
 
         updateSelectAllButtonState();
-        animateTableUpdate(tbody);
       }
 
       function renderSelectedTable() {
         const tbody = document.getElementById("selectedBody");
         const emptyState = document.getElementById("selectedEmptyState");
         const countEl = document.getElementById("selectedCount");
-
         tbody.innerHTML = "";
 
         if (selectedMerchants.length === 0) {
           emptyState.classList.remove("hidden");
           countEl.textContent = "0 selected";
-          const controlPanel = document.getElementById("paginationControlsSelected");
+          const controlPanel = document.getElementById(
+            "paginationControlsSelected",
+          );
           if (controlPanel) controlPanel.classList.add("hidden");
           updateTotals();
           return;
@@ -1107,82 +2001,35 @@
         updatePaginationUI("Selected", pageInfo);
 
         pageInfo.paginatedData.forEach((item, index) => {
-          const deltaTrx = item.deltaTrx;
-          const deltaSv = item.deltaSv;
           const rowNo = pageInfo.startIndex + index + 1;
-
           const row = document.createElement("tr");
-          row.className = "row-hover bg-white";
-          row.innerHTML = `
-            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
-            <td class="px-4 py-3 text-sm text-gray-800 font-medium whitespace-nowrap">${item.nama}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">KC:</span> ${item.namaKanca}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">UK:</span> ${item.uker}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">T:</span> ${item.tid}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">M:</span> ${item.mid}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${item.pemrakarsa}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">MOM:</span> <span>${formatNumber(item.trxLalu)}</span>
-              </div>
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">Now:</span> <span>${formatNumber(item.trxUpdate)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">MOM:</span> <span>${formatCurrency(item.svLalu)}</span>
-              </div>
-              <div class="flex justify-between gap-3">
-                  <span class="font-semibold text-[10px] text-gray-400">Now:</span> <span>${formatCurrency(item.svUpdate)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <div class="flex justify-between gap-3 mb-1 text-xs">
-                  <span class="font-semibold text-[10px] text-gray-400">Trx:</span>
-                  <span class="${deltaTrx > 0 ? 'text-green-600' : deltaTrx < 0 ? 'text-red-600' : 'text-gray-600'} font-semibold">${getDeltaPrefix(deltaTrx)}${formatNumber(deltaTrx)}</span>
-              </div>
-              <div class="flex justify-between gap-3 text-xs">
-                  <span class="font-semibold text-[10px] text-gray-400">SV:</span>
-                  <span class="${deltaSv > 0 ? 'text-green-600' : deltaSv < 0 ? 'text-red-600' : 'text-gray-600'} font-semibold">${getDeltaPrefix(deltaSv)}${formatCurrency(deltaSv)}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-center whitespace-nowrap">
-              <button onclick="removeMerchant('${item.tid}')" class="btn-action px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
-                Remove
-              </button>
-            </td>
-          `;
+          row.className =
+            "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+          row.innerHTML = generateTableRowHTML(item, rowNo, false, "Remove");
           tbody.appendChild(row);
         });
 
         updateTotals();
-        animateTableUpdate(tbody);
       }
 
       function getTop25Data() {
         const baseData = getBaseFilteredData();
         if (!baseData || baseData.length === 0) return [];
-
-        let top25 = [...baseData].sort((a, b) => a.deltaSv - b.deltaSv).slice(0, 25);
+        let top25 = [...baseData]
+          .sort((a, b) => a.deltaSv - b.deltaSv)
+          .slice(0, 25);
         return applySort(top25, sortConfigs.top25);
       }
 
       function renderTop25Table() {
         const tbody = document.getElementById("top25Body");
         tbody.innerHTML = "";
-
         const sortedData = getTop25Data();
+
         if (sortedData.length === 0) {
-          const controlPanel = document.getElementById("paginationControlsTop25");
+          const controlPanel = document.getElementById(
+            "paginationControlsTop25",
+          );
           if (controlPanel) controlPanel.classList.add("hidden");
           return;
         }
@@ -1193,67 +2040,94 @@
         pageInfo.paginatedData.forEach((item, index) => {
           const rowNo = pageInfo.startIndex + index + 1;
           const row = document.createElement("tr");
-          row.className = "row-hover bg-white";
-          row.innerHTML = `
-            <td class="px-4 py-3 text-sm text-center text-gray-700 whitespace-nowrap">${rowNo}</td>
-            <td class="px-4 py-3 text-sm text-gray-800 font-medium whitespace-nowrap">${item.nama}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">KC:</span> ${item.namaKanca}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-6 inline-block">UK:</span> ${item.uker}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">
-              <div class="flex flex-col gap-0.5">
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">T:</span> ${item.tid}</div>
-                  <div><span class="font-semibold text-[10px] text-gray-400 w-4 inline-block">M:</span> ${item.mid}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${item.pemrakarsa}</td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold ${getDeltaClass(item.deltaSv)}">
-                ${getDeltaPrefix(item.deltaSv)}${formatCurrency(item.deltaSv)}
-              </span>
-            </td>
-          `;
+          row.className =
+            "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+          row.innerHTML = generateTableRowHTML(item, rowNo, false, "Top25");
           tbody.appendChild(row);
         });
-
-        animateTableUpdate(tbody);
       }
 
-      // Fungsi Mengunduh Grafik dalam bentuk PNG
+      // ==========================================
+      // CHART RENDER & THEME MANAGEMENT
+      // ==========================================
       function downloadChart(canvasId, filename) {
         const canvas = document.getElementById(canvasId);
-        
-        // Buat temporary canvas untuk background putih (mencegah background hitam/transparan)
-        const newCanvas = document.createElement('canvas');
+        const newCanvas = document.createElement("canvas");
         newCanvas.width = canvas.width;
         newCanvas.height = canvas.height;
-        const ctx = newCanvas.getContext('2d');
-        
-        ctx.fillStyle = '#ffffff';
+        const ctx = newCanvas.getContext("2d");
+
+        // Set background yang tepat berdasarkan tema saat ini agar hasil download tidak hitam
+        const isDark = document.documentElement.classList.contains("dark");
+        ctx.fillStyle = isDark ? "#1e293b" : "#ffffff";
         ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
         ctx.drawImage(canvas, 0, 0);
-        
-        const link = document.createElement('a');
+
+        const link = document.createElement("a");
         link.download = filename;
-        link.href = newCanvas.toDataURL('image/png', 1.0);
+        link.href = newCanvas.toDataURL("image/png", 1.0);
         link.click();
+      }
+
+      // Memastikan warna Chart menyesuaikan mode Terang/Gelap
+      function getChartThemeColors() {
+        const isDark = document.documentElement.classList.contains("dark");
+        return {
+          textColor: isDark ? "#cbd5e1" : "#475569",
+          gridColor: isDark ? "#334155" : "#e2e8f0",
+          dataLabelColor: isDark ? "#f8fafc" : "#475569",
+        };
+      }
+
+      function updateChartsTheme() {
+        if (branchChartInstance) {
+          const colors = getChartThemeColors();
+          branchChartInstance.options.scales.x.grid.color = colors.gridColor;
+          branchChartInstance.options.scales.y.grid.color = colors.gridColor;
+          branchChartInstance.options.scales.x.ticks.color = colors.textColor;
+          branchChartInstance.options.scales.y.ticks.color = colors.textColor;
+          branchChartInstance.options.plugins.datalabels.color =
+            colors.dataLabelColor;
+          branchChartInstance.update();
+        }
+        if (productivityChartInstance) {
+          const colors = getChartThemeColors();
+          productivityChartInstance.options.scales.x.grid.color =
+            colors.gridColor;
+          productivityChartInstance.options.scales.y.grid.color =
+            colors.gridColor;
+          productivityChartInstance.options.scales.x.ticks.color =
+            colors.textColor;
+          productivityChartInstance.options.scales.y.ticks.color =
+            colors.textColor;
+          productivityChartInstance.options.plugins.datalabels.color =
+            colors.dataLabelColor;
+          productivityChartInstance.update();
+        }
+        if (overallProductivityChartInstance) {
+          overallProductivityChartInstance.options.plugins.datalabels.color =
+            "#ffffff"; // Donut selalu putih textnya karena backgroun solid
+          overallProductivityChartInstance.options.plugins.legend.labels.color =
+            getChartThemeColors().textColor;
+          overallProductivityChartInstance.update();
+        }
       }
 
       function renderCharts(data) {
         if (branchChartInstance) branchChartInstance.destroy();
         if (productivityChartInstance) productivityChartInstance.destroy();
-        if (overallProductivityChartInstance) overallProductivityChartInstance.destroy();
+        if (overallProductivityChartInstance)
+          overallProductivityChartInstance.destroy();
 
         if (!data || data.length === 0) return;
 
+        const colors = getChartThemeColors();
+
+        // CHART 1: Branch Delta SV
         const branchDataMap = {};
         data.forEach((item) => {
-          const deltaSv = item.deltaSv;
           if (!branchDataMap[item.namaKanca]) branchDataMap[item.namaKanca] = 0;
-          branchDataMap[item.namaKanca] += deltaSv;
+          branchDataMap[item.namaKanca] += item.deltaSv;
         });
 
         const sortedBranches = Object.keys(branchDataMap)
@@ -1263,7 +2137,9 @@
           }))
           .sort((a, b) => b.delta - a.delta);
 
-        const ctxBranch = document.getElementById("branchChart").getContext("2d");
+        const ctxBranch = document
+          .getElementById("branchChart")
+          .getContext("2d");
         branchChartInstance = new Chart(ctxBranch, {
           type: "bar",
           data: {
@@ -1272,9 +2148,11 @@
               {
                 label: "Delta SV (Juta)",
                 data: sortedBranches.map((b) => b.delta),
-                backgroundColor: sortedBranches.map((b) => b.delta < 0 ? "rgba(239, 68, 68, 0.7)" : "rgba(34, 197, 94, 0.7)"),
-                borderColor: sortedBranches.map((b) => b.delta < 0 ? "rgb(239, 68, 68)" : "rgb(34, 197, 94)"),
-                borderWidth: 1,
+                backgroundColor: sortedBranches.map((b) =>
+                  b.delta < 0
+                    ? "rgba(239, 68, 68, 0.85)"
+                    : "rgba(16, 185, 129, 0.85)",
+                ),
                 borderRadius: 4,
               },
             ],
@@ -1283,30 +2161,48 @@
             indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { left: 40, right: 60 } },
+            layout: { padding: { left: 10, right: 50 } },
             scales: {
-              x: { title: { display: true, text: "Juta Rp" } },
-              y: { ticks: { autoSkip: false } },
+              x: {
+                title: {
+                  display: true,
+                  text: "Juta Rupiah",
+                  color: colors.textColor,
+                },
+                grid: { color: colors.gridColor },
+                ticks: { color: colors.textColor },
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  autoSkip: false,
+                  color: colors.textColor,
+                  font: { size: 11 },
+                },
+              },
             },
             plugins: {
               legend: { display: false },
               datalabels: {
                 display: true,
-                color: "#475569",
+                color: colors.dataLabelColor,
                 anchor: "end",
                 align: "end",
-                font: { weight: "bold", size: 10 },
+                font: { weight: "600", size: 10 },
                 formatter: (value) => {
                   const formatted = value.toLocaleString("id-ID");
-                  return value > 0 ? "+" + formatted + " Jt" : formatted + " Jt";
+                  return value > 0
+                    ? "+" + formatted + " Jt"
+                    : formatted + " Jt";
                 },
               },
               tooltip: {
                 callbacks: {
                   label: function (context) {
                     const val = context.raw;
-                    const formatted = val.toLocaleString("id-ID");
-                    return val > 0 ? " +" + formatted + " Jt" : " " + formatted + " Jt";
+                    return val > 0
+                      ? " +" + val.toLocaleString("id-ID") + " Jt"
+                      : " " + val.toLocaleString("id-ID") + " Jt";
                   },
                 },
               },
@@ -1314,11 +2210,16 @@
           },
         });
 
-        const productiveCount = data.filter((item) => item.svUpdate >= 15000000).length;
+        // CHART 2: Donut Produktivitas
+        const productiveCount = data.filter(
+          (item) => item.svUpdate >= 15000000,
+        ).length;
         const totalCount = data.length;
         const nonProductiveCount = totalCount - productiveCount;
 
-        const ctxOverall = document.getElementById("overallProductivityChart").getContext("2d");
+        const ctxOverall = document
+          .getElementById("overallProductivityChart")
+          .getContext("2d");
         overallProductivityChartInstance = new Chart(ctxOverall, {
           type: "doughnut",
           data: {
@@ -1326,26 +2227,38 @@
             datasets: [
               {
                 data: [productiveCount, nonProductiveCount],
-                backgroundColor: ["rgba(34, 197, 94, 0.8)", "rgba(239, 68, 68, 0.8)"],
-                borderWidth: 1,
+                backgroundColor: [
+                  "rgba(16, 185, 129, 0.9)",
+                  "rgba(244, 63, 94, 0.9)",
+                ],
+                borderWidth: 0,
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: "65%",
             plugins: {
               legend: {
                 position: "bottom",
-                labels: { boxWidth: 12, font: { size: 10 } },
+                labels: {
+                  boxWidth: 10,
+                  font: { size: 11 },
+                  color: colors.textColor,
+                  padding: 20,
+                },
               },
               datalabels: {
                 color: "#ffffff",
                 font: { weight: "bold", size: 11 },
-                formatter: (value, ctx) => {
+                formatter: (value) => {
                   if (value === 0) return null;
-                  const percentage = totalCount > 0 ? ((value / totalCount) * 100).toFixed(1) + "%" : "0%";
-                  return `${value.toLocaleString("id-ID")}\n(${percentage})`;
+                  const percentage =
+                    totalCount > 0
+                      ? ((value / totalCount) * 100).toFixed(0) + "%"
+                      : "0%";
+                  return `${percentage}`;
                 },
                 textAlign: "center",
               },
@@ -1353,8 +2266,11 @@
                 callbacks: {
                   label: function (context) {
                     const value = context.raw;
-                    const percent = totalCount > 0 ? ((value / totalCount) * 100).toFixed(1) : 0;
-                    return ` ${context.label}: ${value.toLocaleString("id-ID")} Merchant (${percent}%)`;
+                    const percent =
+                      totalCount > 0
+                        ? ((value / totalCount) * 100).toFixed(1)
+                        : 0;
+                    return ` ${context.label}: ${value.toLocaleString("id-ID")} (${percent}%)`;
                   },
                 },
               },
@@ -1362,22 +2278,21 @@
           },
         });
 
+        // CHART 3: Bar Produktivitas per Kanca
         const productivityMap = {};
         data.forEach((item) => {
           const kanca = item.namaKanca;
-          if (!productivityMap[kanca]) {
+          if (!productivityMap[kanca])
             productivityMap[kanca] = { total: 0, productive: 0 };
-          }
           productivityMap[kanca].total += 1;
-          if (item.svUpdate >= 15000000) {
-            productivityMap[kanca].productive += 1;
-          }
+          if (item.svUpdate >= 15000000) productivityMap[kanca].productive += 1;
         });
 
         const sortedProductivity = Object.keys(productivityMap)
           .map((kanca) => {
             const stats = productivityMap[kanca];
-            const percentage = stats.total > 0 ? (stats.productive / stats.total) * 100 : 0;
+            const percentage =
+              stats.total > 0 ? (stats.productive / stats.total) * 100 : 0;
             return {
               kanca,
               percentage: parseFloat(percentage.toFixed(2)),
@@ -1392,7 +2307,9 @@
           tot: p.total,
         }));
 
-        const ctxProd = document.getElementById("productivityChart").getContext("2d");
+        const ctxProd = document
+          .getElementById("productivityChart")
+          .getContext("2d");
         productivityChartInstance = new Chart(ctxProd, {
           type: "bar",
           data: {
@@ -1401,12 +2318,9 @@
               {
                 label: "% Produktivitas",
                 data: sortedProductivity.map((p) => p.percentage),
-                backgroundColor: "rgba(59, 130, 246, 0.7)",
-                borderColor: "rgb(59, 130, 246)",
-                borderWidth: 1,
+                backgroundColor: "rgba(14, 165, 233, 0.85)", // brand-500
                 borderRadius: 4,
-                barPercentage: 0.55,
-                maxBarThickness: 35,
+                barPercentage: 0.6,
               },
             ],
           },
@@ -1419,27 +2333,40 @@
               x: {
                 beginAtZero: true,
                 max: 100,
-                title: { display: true, text: "Persentase (%)" },
+                title: {
+                  display: true,
+                  text: "Persentase (%)",
+                  color: colors.textColor,
+                },
+                grid: { color: colors.gridColor },
+                ticks: { color: colors.textColor },
               },
-              y: { ticks: { autoSkip: false } },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  autoSkip: false,
+                  color: colors.textColor,
+                  font: { size: 11 },
+                },
+              },
             },
             plugins: {
               legend: { display: false },
               datalabels: {
-                color: "#475569",
+                color: colors.dataLabelColor,
                 anchor: "end",
                 align: "right",
-                font: { size: 10, weight: "bold" },
+                font: { size: 10, weight: "600" },
                 formatter: (value, ctx) => {
                   const detail = prodDetails[ctx.dataIndex];
-                  return `${value}% (${detail.prod.toLocaleString("id-ID")}/${detail.tot.toLocaleString("id-ID")})`;
+                  return `${value}% (${detail.prod}/${detail.tot})`;
                 },
               },
               tooltip: {
                 callbacks: {
                   label: function (context) {
                     const detail = prodDetails[context.dataIndex];
-                    return ` ${context.raw}% (${detail.prod.toLocaleString("id-ID")} dari ${detail.tot.toLocaleString("id-ID")} Merchant)`;
+                    return ` ${context.raw}% (${detail.prod.toLocaleString("id-ID")} / ${detail.tot.toLocaleString("id-ID")} Merchant)`;
                   },
                 },
               },
@@ -1448,6 +2375,9 @@
         });
       }
 
+      // ==========================================
+      // SELECTION & TOTALS
+      // ==========================================
       function updateTotals() {
         let totalDeltaTrx = 0;
         let totalDeltaSv = 0;
@@ -1460,19 +2390,39 @@
         const trxEl = document.getElementById("totalTrx");
         const svEl = document.getElementById("totalSv");
 
-        trxEl.classList.remove("text-primary", "text-gray-600", "text-green-600", "text-red-600");
-        svEl.classList.remove("text-secondary", "text-gray-600", "text-green-600", "text-red-600");
+        trxEl.className =
+          "text-2xl font-bold mt-2 transition-colors duration-300";
+        svEl.className =
+          "text-2xl font-bold mt-2 transition-colors duration-300";
 
-        if (totalDeltaTrx > 0) trxEl.classList.add("text-green-600");
-        else if (totalDeltaTrx < 0) trxEl.classList.add("text-red-600");
-        else trxEl.classList.add("text-gray-600");
+        if (totalDeltaTrx > 0)
+          trxEl.classList.add("text-emerald-600", "dark:text-emerald-400");
+        else if (totalDeltaTrx < 0)
+          trxEl.classList.add("text-red-600", "dark:text-red-400");
+        else trxEl.classList.add("text-slate-800", "dark:text-white");
 
-        if (totalDeltaSv > 0) svEl.classList.add("text-green-600");
-        else if (totalDeltaSv < 0) svEl.classList.add("text-red-600");
-        else svEl.classList.add("text-gray-600");
+        if (totalDeltaSv > 0)
+          svEl.classList.add("text-emerald-600", "dark:text-emerald-400");
+        else if (totalDeltaSv < 0)
+          svEl.classList.add("text-red-600", "dark:text-red-400");
+        else svEl.classList.add("text-slate-800", "dark:text-white");
 
-        animateValue(trxEl, prevTotalTrx, totalDeltaTrx, 800, formatNumber, getDeltaPrefix(totalDeltaTrx));
-        animateValue(svEl, prevTotalSv, totalDeltaSv, 800, formatCurrency, getDeltaPrefix(totalDeltaSv));
+        animateValue(
+          trxEl,
+          prevTotalTrx,
+          totalDeltaTrx,
+          800,
+          formatNumber,
+          getDeltaPrefix(totalDeltaTrx),
+        );
+        animateValue(
+          svEl,
+          prevTotalSv,
+          totalDeltaSv,
+          800,
+          formatCurrency,
+          getDeltaPrefix(totalDeltaSv),
+        );
 
         prevTotalTrx = totalDeltaTrx;
         prevTotalSv = totalDeltaSv;
@@ -1482,19 +2432,26 @@
         const currentData = getFilteredData();
         if (currentData.length === 0) return;
 
-        const allSelected = currentData.every((item) => selectedMerchants.some((m) => m.tid === item.tid));
+        const allSelected = currentData.every((item) =>
+          selectedMerchants.some((m) => m.tid === item.tid),
+        );
 
         if (allSelected) {
           const currentTids = currentData.map((item) => item.tid);
-          selectedMerchants = selectedMerchants.filter((m) => !currentTids.includes(m.tid));
-          addActivityLog(`Membatalkan pilihan (Unselect All) ${currentData.length} merchant`);
+          selectedMerchants = selectedMerchants.filter(
+            (m) => !currentTids.includes(m.tid),
+          );
+          addActivityLog(
+            `Membatalkan pilihan (Unselect All) ${currentData.length} merchant`,
+          );
         } else {
           currentData.forEach((item) => {
-            if (!selectedMerchants.some((m) => m.tid === item.tid)) {
+            if (!selectedMerchants.some((m) => m.tid === item.tid))
               selectedMerchants.push(item);
-            }
           });
-          addActivityLog(`Memilih semua (Select All) ${currentData.length} merchant`);
+          addActivityLog(
+            `Memilih semua (Select All) ${currentData.length} merchant`,
+          );
         }
 
         renderResultTable(currentData);
@@ -1504,26 +2461,53 @@
       function updateSelectAllButtonState() {
         const btn = document.getElementById("btnSelectAllToggle");
         if (!btn) return;
-
         const currentData = getFilteredData();
-        btn.className = "btn-action flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors";
+        btn.className =
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm";
 
         if (currentData.length === 0) {
-          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
-          btn.classList.add("bg-gray-100", "text-gray-400", "border", "border-gray-200", "cursor-not-allowed", "opacity-50");
+          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
+          btn.classList.add(
+            "bg-slate-100",
+            "text-slate-400",
+            "border",
+            "border-slate-200",
+            "dark:bg-slate-800",
+            "dark:border-slate-700",
+            "cursor-not-allowed",
+            "opacity-50",
+          );
           btn.disabled = true;
           return;
         }
 
         btn.disabled = false;
-        const allSelected = currentData.every((item) => selectedMerchants.some((m) => m.tid === item.tid));
+        const allSelected = currentData.every((item) =>
+          selectedMerchants.some((m) => m.tid === item.tid),
+        );
 
         if (allSelected) {
-          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Unselect All`;
-          btn.classList.add("bg-orange-50", "text-orange-700", "border", "border-orange-200", "hover:bg-orange-100");
+          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Unselect All`;
+          btn.classList.add(
+            "bg-amber-50",
+            "text-amber-700",
+            "border-amber-200",
+            "hover:bg-amber-100",
+            "dark:bg-amber-900/20",
+            "dark:text-amber-400",
+            "dark:border-amber-800/50",
+          );
         } else {
-          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
-          btn.classList.add("bg-blue-50", "text-blue-700", "border", "border-blue-200", "hover:bg-blue-100");
+          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
+          btn.classList.add(
+            "bg-brand-50",
+            "text-brand-700",
+            "border-brand-200",
+            "hover:bg-brand-100",
+            "dark:bg-brand-900/20",
+            "dark:text-brand-400",
+            "dark:border-brand-800/50",
+          );
         }
       }
 
@@ -1540,9 +2524,10 @@
       function removeMerchant(tid) {
         const merchant = selectedMerchants.find((m) => m.tid === tid);
         selectedMerchants = selectedMerchants.filter((m) => m.tid !== tid);
-        if (merchant) {
-          addActivityLog(`Menghapus merchant ${merchant.nama} dari list Selected`);
-        }
+        if (merchant)
+          addActivityLog(
+            `Menghapus merchant ${merchant.nama} dari list Selected`,
+          );
         renderResultTable(getFilteredData());
         renderSelectedTable();
       }
@@ -1557,29 +2542,54 @@
       }
 
       function getBaseFilteredData() {
-        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
         const searchCategory = document.getElementById("searchCategory").value;
+        const svFilterType = document.getElementById("svFilterType").value;
+        const svFilterValueRaw = document.getElementById("svFilterValue").value;
+        const svFilterValue = parseFloat(svFilterValueRaw);
 
-        if (!searchTerm) return merchantData;
+        let filtered = merchantData;
 
-        return merchantData.filter((item) => {
-          if (searchCategory === "all") {
-            return (
-              item.kodeKanca.toLowerCase().includes(searchTerm) ||
-              item.namaKanca.toLowerCase().includes(searchTerm) ||
-              item.kodeUker.toLowerCase().includes(searchTerm) ||
-              item.uker.toLowerCase().includes(searchTerm) ||
-              item.tid.toLowerCase().includes(searchTerm) ||
-              item.mid.toLowerCase().includes(searchTerm) ||
-              item.nama.toLowerCase().includes(searchTerm) ||
-              item.pn.toLowerCase().includes(searchTerm) ||
-              item.pemrakarsa.toLowerCase().includes(searchTerm)
-            );
-          } else {
-            const valueToSearch = String(item[searchCategory] || "").toLowerCase();
-            return valueToSearch.includes(searchTerm);
-          }
-        });
+        // Terapkan Filter Teks
+        if (searchTerm) {
+          filtered = filtered.filter((item) => {
+            if (searchCategory === "all") {
+              return (
+                item.kodeKanca.toLowerCase().includes(searchTerm) ||
+                item.namaKanca.toLowerCase().includes(searchTerm) ||
+                item.kodeUker.toLowerCase().includes(searchTerm) ||
+                item.uker.toLowerCase().includes(searchTerm) ||
+                item.tid.toLowerCase().includes(searchTerm) ||
+                item.mid.toLowerCase().includes(searchTerm) ||
+                item.nama.toLowerCase().includes(searchTerm) ||
+                item.pn.toLowerCase().includes(searchTerm) ||
+                item.pemrakarsa.toLowerCase().includes(searchTerm)
+              );
+            } else {
+              const valueToSearch = String(
+                item[searchCategory] || "",
+              ).toLowerCase();
+              return valueToSearch.includes(searchTerm);
+            }
+          });
+        }
+
+        // Terapkan Filter SV
+        if (
+          svFilterType !== "all" &&
+          svFilterValueRaw !== "" &&
+          !isNaN(svFilterValue)
+        ) {
+          filtered = filtered.filter((item) => {
+            if (svFilterType === ">=") return item.svUpdate >= svFilterValue;
+            if (svFilterType === "<=") return item.svUpdate <= svFilterValue;
+            return true;
+          });
+        }
+
+        return filtered;
       }
 
       function getFilteredData() {
@@ -1602,19 +2612,29 @@
       function clearSearch() {
         document.getElementById("searchInput").value = "";
         document.getElementById("searchCategory").value = "all";
+        document.getElementById("svFilterType").value = "all";
+        document.getElementById("svFilterValue").value = "";
+
         pagination.Result.current = 1;
         pagination.Top25.current = 1;
+        addActivityLog("Membersihkan semua filter pencarian");
 
-        addActivityLog("Membersihkan filter pencarian");
         renderResultTable(getFilteredData());
         renderCharts(getBaseFilteredData());
         renderTop25Table();
       }
 
       function setCurrentDate(dateObj) {
-        const now = dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
-        const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-        document.getElementById("dataTanggal").textContent = now.toLocaleDateString("id-ID", options);
+        const now =
+          dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        document.getElementById("dataTanggal").textContent =
+          now.toLocaleDateString("id-ID", options);
       }
 
       window.onload = () => {
@@ -1624,15 +2644,47 @@
         initVisitorCount();
       };
 
+      // ==========================================
+      // EXPORT FUNCTIONS
+      // ==========================================
       function convertToCSV(objArray) {
-        const array = typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
+        const array =
+          typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
         if (!array || !array.length) return "";
-
-        const headers = ["No", "Kode Kanca", "Nama Kanca", "Kode Uker", "Nama Uker", "TID", "MID", "Nama Merchant", "PN", "Pemrakarsa", "Trx MOM", "SV MOM", "Trx Update", "SV Update", "Delta Trx", "Delta SV"];
-        const keys = ["kodeKanca", "namaKanca", "kodeUker", "uker", "tid", "mid", "nama", "pn", "pemrakarsa", "trxLalu", "svLalu", "trxUpdate", "svUpdate"];
-
+        const headers = [
+          "No",
+          "Kode Kanca",
+          "Nama Kanca",
+          "Kode Uker",
+          "Nama Uker",
+          "TID",
+          "MID",
+          "Nama Merchant",
+          "PN",
+          "Pemrakarsa",
+          "Trx MOM",
+          "SV MOM",
+          "Trx Update",
+          "SV Update",
+          "Delta Trx",
+          "Delta SV",
+        ];
+        const keys = [
+          "kodeKanca",
+          "namaKanca",
+          "kodeUker",
+          "uker",
+          "tid",
+          "mid",
+          "nama",
+          "pn",
+          "pemrakarsa",
+          "trxLalu",
+          "svLalu",
+          "trxUpdate",
+          "svUpdate",
+        ];
         let str = headers.join(",") + "\r\n";
-
         for (let i = 0; i < array.length; i++) {
           let line = `${i + 1},`;
           for (let index in keys) {
@@ -1683,9 +2735,17 @@
         if (data.length === 0) return;
         addActivityLog("Mengunduh Report CSV Top 25 Penurunan");
 
-        const headers = ["No", "Nama Kanca", "Nama Uker", "TID", "MID", "Nama Merchant", "Pemrakarsa", "Delta SV"];
+        const headers = [
+          "No",
+          "Nama Kanca",
+          "Nama Uker",
+          "TID",
+          "MID",
+          "Nama Merchant",
+          "Pemrakarsa",
+          "Delta SV",
+        ];
         let str = headers.join(",") + "\r\n";
-
         data.forEach((item, index) => {
           let row = [
             index + 1,
@@ -1699,7 +2759,6 @@
           ];
           str += row.join(",") + "\r\n";
         });
-
         downloadCSV(str, "Top_25_Penurunan_SV.csv");
       }
 
@@ -1710,7 +2769,6 @@
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("landscape");
-
         const lastUpdated = document.getElementById("dataTanggal").textContent;
         const generateDate = new Date().toLocaleDateString("id-ID");
 
@@ -1721,9 +2779,17 @@
         doc.text(`Generate Date: ${generateDate}`, 14, 28);
 
         const headers = [
-          ["No", "Nama Kanca", "Nama Uker", "TID", "MID", "Nama Merchant", "Pemrakarsa", "Delta SV"],
+          [
+            "No",
+            "Nama Kanca",
+            "Nama Uker",
+            "TID",
+            "MID",
+            "Nama Merchant",
+            "Pemrakarsa",
+            "Delta SV",
+          ],
         ];
-
         const data = top25.map((item, index) => {
           return [
             index + 1,
@@ -1743,15 +2809,14 @@
           startY: 34,
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2 },
-          headStyles: { fillColor: [220, 38, 38] },
+          headStyles: { fillColor: [15, 23, 42] }, // Slate 900
           didParseCell: function (data) {
             if (data.section === "body" && data.column.index === 7) {
               const textVal = data.cell.text[0] || "";
-              if (textVal.includes("-")) {
+              if (textVal.includes("-"))
                 data.cell.styles.textColor = [220, 38, 38];
-              } else if (textVal.includes("+")) {
-                data.cell.styles.textColor = [22, 163, 74];
-              }
+              else if (textVal.includes("+"))
+                data.cell.styles.textColor = [16, 185, 129];
             }
           },
           didDrawPage: function (data) {
@@ -1762,11 +2827,10 @@
               "© BAYU DWI SUHARMINTO | IG: bayudwis_07",
               doc.internal.pageSize.width / 2,
               pageHeight - 5,
-              { align: "center" }
+              { align: "center" },
             );
           },
         });
-
         doc.save("Top_25_Penurunan_SV.pdf");
       }
 
@@ -1776,7 +2840,6 @@
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("landscape");
-
         const lastUpdated = document.getElementById("dataTanggal").textContent;
         const generateDate = new Date().toLocaleDateString("id-ID");
 
@@ -1787,9 +2850,22 @@
         doc.text(`Generate Date: ${generateDate}`, 14, 28);
 
         const headers = [
-          ["No", "Kanca", "Uker", "TID", "MID", "Merchant", "Pemrakarsa", "Trx MOM", "SV MOM", "Trx Update", "SV Update", "Delta Trx", "Delta SV"],
+          [
+            "No",
+            "Kanca",
+            "Uker",
+            "TID",
+            "MID",
+            "Merchant",
+            "Pemrakarsa",
+            "Trx MOM",
+            "SV MOM",
+            "Trx Update",
+            "SV Update",
+            "Delta Trx",
+            "Delta SV",
+          ],
         ];
-
         const data = selectedMerchants.map((item, index) => {
           return [
             index + 1,
@@ -1814,16 +2890,15 @@
           startY: 34,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1.5 },
-          headStyles: { fillColor: [22, 163, 74] },
+          headStyles: { fillColor: [16, 185, 129] }, // Emerald
           didParseCell: function (data) {
             if (data.section === "body") {
               if (data.column.index === 11 || data.column.index === 12) {
                 const textVal = data.cell.text[0] || "";
-                if (textVal.includes("-")) {
+                if (textVal.includes("-"))
                   data.cell.styles.textColor = [220, 38, 38];
-                } else if (textVal.includes("+")) {
-                  data.cell.styles.textColor = [22, 163, 74];
-                }
+                else if (textVal.includes("+"))
+                  data.cell.styles.textColor = [16, 185, 129];
               }
             }
           },
@@ -1835,7 +2910,7 @@
               "© BAYU DWI SUHARMINTO | IG: bayudwis_07",
               doc.internal.pageSize.width / 2,
               pageHeight - 5,
-              { align: "center" }
+              { align: "center" },
             );
           },
         });
@@ -1850,8 +2925,16 @@
         const finalY = doc.lastAutoTable.finalY || 34;
         doc.setFontSize(10);
         doc.setTextColor(0);
-        doc.text(`Total Delta Trx: ${getDeltaPrefix(totalDeltaTrx) + formatNumber(totalDeltaTrx)}`, 14, finalY + 10);
-        doc.text(`Total Delta SV: ${getDeltaPrefix(totalDeltaSv) + formatCurrency(totalDeltaSv)}`, 14, finalY + 16);
+        doc.text(
+          `Total Delta Trx: ${getDeltaPrefix(totalDeltaTrx) + formatNumber(totalDeltaTrx)}`,
+          14,
+          finalY + 10,
+        );
+        doc.text(
+          `Total Delta SV: ${getDeltaPrefix(totalDeltaSv) + formatCurrency(totalDeltaSv)}`,
+          14,
+          finalY + 16,
+        );
 
         doc.save("Report Data MOM.pdf");
       }
