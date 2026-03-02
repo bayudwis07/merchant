@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Merchant Monitoring System</title>
+    <title>MMS Portal - Internal Banking</title>
 
-    <!-- Script untuk mencegah FOUC (Flash of Unstyled Content) saat Dark Mode -->
+    <!-- Script untuk Dark Mode Init -->
     <script>
       if (
         localStorage.getItem("color-theme") === "dark" ||
@@ -20,11 +20,11 @@
 
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 
-    <!-- Library jsPDF untuk unduhan PDF -->
+    <!-- Library jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- Library Chart.js dan Datalabels untuk Grafik -->
+    <!-- Library Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
@@ -42,17 +42,16 @@
               corporate: {
                 50: "#f0f4f8",
                 100: "#d9e2ec",
-                500: "#243b53", // Primary dark blue
-                600: "#102a43", // Deeper corporate blue
+                500: "#243b53",
+                600: "#102a43",
+                700: "#0a1c2e",
               },
               brand: {
-                500: "#0ea5e9", // Light blue accent
+                500: "#0ea5e9",
                 600: "#0284c7",
               },
             },
-            fontFamily: {
-              inter: ["Inter", "sans-serif"],
-            },
+            fontFamily: { inter: ["Inter", "sans-serif"] },
             boxShadow: {
               soft: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
             },
@@ -60,133 +59,290 @@
         },
       };
     </script>
-    <style>
-      * {
-        font-family: "Inter", sans-serif;
-      }
 
-      /* Custom Scrollbar */
-      .custom-scrollbar::-webkit-scrollbar {
-        height: 6px;
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-
-      /* Transitions for smooth Dark Mode switching */
-      body {
-        transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
-      }
-      .transition-theme {
-        transition:
-          background-color 0.3s ease,
-          border-color 0.3s ease,
-          color 0.3s ease,
-          box-shadow 0.3s ease;
-      }
-
-      table {
-        border-collapse: separate;
-        border-spacing: 0;
-      }
-
-      /* Sticky Header fix for scrolling */
-      .sticky-header th {
-        position: sticky;
-        top: 0;
-        z-index: 20; /* Ditingkatkan agar berada di atas konten lain */
-        background-color: #f8fafc; /* bg-slate-50 (Menghilangkan efek transparan) */
-        box-shadow: inset 0 -1px 0 0 #e2e8f0; /* Memastikan border bawah tetap terlihat */
-      }
-      .dark .sticky-header th {
-        background-color: #0f172a; /* bg-slate-900 */
-        box-shadow: inset 0 -1px 0 0 #334155;
-      }
-
-      /* Animations */
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-      .loader {
-        border: 2px solid #e2e8f0;
-        border-top: 2px solid #3b82f6;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        animation: spin 1s linear infinite;
-        display: inline-block;
-        vertical-align: middle;
-      }
-      .dark .loader {
-        border-color: #334155;
-        border-top-color: #3b82f6;
-      }
-
-      .pulse-badge {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="css/style.css" />
   </head>
+
   <body
-    class="h-full bg-slate-50 dark:bg-slate-900 font-inter text-slate-800 dark:text-slate-200"
+    class="h-full bg-slate-50 dark:bg-slate-900 font-inter text-slate-800 dark:text-slate-200 overflow-hidden"
   >
-    <div class="min-h-full w-full overflow-auto custom-scrollbar">
-      <!-- Header Korporat -->
-      <header
-        class="bg-corporate-600 dark:bg-slate-950 text-white shadow-md transition-theme border-b border-corporate-500 dark:border-slate-800"
+    <!-- TOAST NOTIFICATION CONTAINER               -->
+
+    <div
+      id="toastContainer"
+      class="fixed top-6 right-6 z-[60] flex flex-col gap-3"
+    ></div>
+
+    <!-- HALAMAN LOGIN                              -->
+
+    <div
+      id="loginContainer"
+      class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 transition-theme px-4"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200 dark:border-slate-700 animate-fade-in"
       >
-        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <div class="text-center mb-8">
           <div
-            class="flex flex-col md:flex-row md:items-center md:justify-between gap-5"
+            class="w-12 h-12 bg-corporate-600 dark:bg-slate-950 rounded-lg flex items-center justify-center mx-auto mb-4 border border-corporate-500 dark:border-slate-700 shadow-sm"
           >
-            <!-- Brand / Title -->
-            <div class="flex items-center gap-4">
-              <div
-                class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 backdrop-blur-sm"
+            <svg
+              class="w-7 h-7 text-brand-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+          </div>
+          <h2
+            class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight"
+          >
+            MMS Portal
+          </h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Silakan login untuk mengakses sistem
+          </p>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="loginEmail"
+              required
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-brand-500 transition-theme text-slate-800 dark:text-white placeholder-slate-400 text-sm"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="loginPassword"
+              required
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-brand-500 transition-theme text-slate-800 dark:text-white placeholder-slate-400 text-sm"
+            />
+          </div>
+          <div
+            id="loginError"
+            class="hidden text-red-600 dark:text-red-400 text-xs font-semibold text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 p-3 rounded-lg"
+          ></div>
+          <button
+            type="submit"
+            id="loginBtn"
+            class="w-full py-2.5 mt-2 bg-corporate-600 hover:bg-corporate-500 text-white rounded-lg font-medium transition-colors flex justify-center items-center shadow-md"
+          >
+            <span>Masuk ke Dashboard</span>
+            <span
+              id="loginLoader"
+              class="loader ml-2 hidden"
+              style="width: 14px; height: 14px; border-top-color: white"
+            ></span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- HALAMAN APLIKASI (APP CONTAINER)           -->
+
+    <div id="appContainer" class="hidden h-screen w-full flex relative">
+      <!-- SIDEBAR BACKDROP (Mobile) -->
+      <div
+        id="sidebarBackdrop"
+        class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden"
+        onclick="toggleSidebar()"
+      ></div>
+
+      <!-- SIDEBAR -->
+      <aside
+        id="sidebar"
+        class="w-64 bg-corporate-600 dark:bg-slate-950 text-white flex-shrink-0 flex flex-col transition-transform duration-300 border-r border-corporate-700 dark:border-slate-800 shadow-xl z-50 fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0"
+      >
+        <div
+          class="p-5 border-b border-corporate-500 dark:border-slate-800 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/20"
+            >
+              <svg
+                class="w-5 h-5 text-brand-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-lg font-bold tracking-tight">MMS System</h1>
+              <p
+                class="text-[10px] text-slate-300 font-medium tracking-widest uppercase"
+              >
+                Portal Internal
+              </p>
+            </div>
+          </div>
+          <!-- Close Sidebar Button (Mobile) -->
+          <button
+            onclick="toggleSidebar()"
+            class="lg:hidden p-1 text-slate-300 hover:text-white rounded-md hover:bg-white/10"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-5">
+          <p
+            class="text-[11px] text-slate-400 font-semibold tracking-wider uppercase mb-3"
+          >
+            Menu Utama
+          </p>
+          <nav class="space-y-1.5">
+            <button
+              onclick="switchView('dashboard')"
+              id="navDashboard"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/10 text-white font-medium transition-colors text-sm text-left"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+                ></path>
+              </svg>
+              Dashboard Rekap
+            </button>
+            <button
+              onclick="switchView('data')"
+              id="navData"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors text-sm text-left hidden"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                ></path>
+              </svg>
+              Master Data
+            </button>
+          </nav>
+        </div>
+
+        <div
+          class="mt-auto p-5 border-t border-corporate-500 dark:border-slate-800 bg-corporate-700/50 dark:bg-slate-900/50"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-xs"
+              id="userInitial"
+            >
+              A
+            </div>
+            <div class="overflow-hidden">
+              <p
+                class="text-sm font-semibold text-white truncate"
+                id="userGreetingNama"
+              >
+                Nama User
+              </p>
+              <p
+                class="text-[10px] text-brand-400 capitalize"
+                id="userGreetingRole"
+              >
+                Role
+              </p>
+            </div>
+          </div>
+          <!-- Trigger Modal Logout instead of calling handleLogout directly -->
+          <button
+            onclick="promptLogout()"
+            class="w-full flex items-center justify-center gap-2 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-lg text-xs font-semibold transition-colors"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              ></path>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <div
+        class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 w-full"
+      >
+        <!-- Header Top Bar -->
+        <header
+          class="bg-white dark:bg-slate-950 shadow-sm transition-theme border-b border-slate-200 dark:border-slate-800 z-20 shrink-0"
+        >
+          <div
+            class="px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div class="flex items-center gap-3">
+              <!-- Sidebar Toggle Button (Hamburger) -->
+              <button
+                onclick="toggleSidebar()"
+                class="p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
               >
                 <svg
-                  class="w-6 h-6 text-brand-500"
+                  class="w-6 h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -195,36 +351,61 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    d="M4 6h16M4 12h16M4 18h16"
                   ></path>
                 </svg>
+              </button>
+
+              <!-- Logo Tampil Saat Navigasi (Sidebar) di-hide di layar kecil -->
+              <div
+                class="lg:hidden flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity mr-2"
+                onclick="toggleSidebar()"
+                title="Buka Sidebar"
+              >
+                <div
+                  class="w-8 h-8 bg-corporate-600 dark:bg-slate-900 rounded-lg flex items-center justify-center border border-corporate-500 dark:border-slate-700 shadow-sm"
+                >
+                  <svg
+                    class="w-5 h-5 text-brand-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    ></path>
+                  </svg>
+                </div>
               </div>
+
               <div>
-                <h1
-                  id="mainTitle"
-                  class="text-xl sm:text-2xl font-bold tracking-tight text-white"
+                <h2
+                  id="pageTitle"
+                  class="text-lg font-bold text-slate-800 dark:text-white"
                 >
-                  Merchant Monitoring System
-                </h1>
+                  Dashboard Rekapitulasi
+                </h2>
                 <p
-                  class="text-slate-300 dark:text-slate-400 mt-0.5 text-xs sm:text-sm font-medium tracking-wide"
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block"
                 >
-                  INTERNAL BANKING DASHBOARD
+                  Ringkasan performa dan produktivitas merchant.
                 </p>
               </div>
             </div>
 
-            <!-- Global Indicators & Controls -->
-            <div class="flex flex-wrap items-center gap-3 md:gap-4">
-              <!-- Dark Mode Toggle -->
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Dark Mode -->
               <button
                 id="themeToggleBtn"
-                class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500"
+                class="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 title="Toggle Dark Mode"
               >
                 <svg
                   id="themeToggleDarkIcon"
-                  class="hidden w-5 h-5"
+                  class="hidden w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -234,7 +415,7 @@
                 </svg>
                 <svg
                   id="themeToggleLightIcon"
-                  class="hidden w-5 h-5"
+                  class="hidden w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -246,142 +427,675 @@
                 </svg>
               </button>
 
-              <div class="h-6 w-px bg-white/20 hidden md:block"></div>
-
-              <!-- Visitor Counter -->
               <div
-                class="flex items-center gap-2 bg-slate-900/50 dark:bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 shadow-inner"
+                class="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"
+              ></div>
+
+              <!-- Visitor -->
+              <div
+                class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-md px-2.5 py-1"
               >
-                <svg
-                  class="w-4 h-4 text-slate-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <span class="text-[9px] text-slate-500 uppercase font-semibold"
+                  >Visitors</span
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-                <div class="flex flex-col">
-                  <span
-                    class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none"
-                    >Visitors</span
-                  >
-                  <span
-                    id="visitorCount"
-                    class="text-sm font-bold text-white leading-tight"
-                    >--</span
-                  >
-                </div>
+                <span
+                  id="visitorCount"
+                  class="text-xs font-bold text-slate-800 dark:text-white"
+                  >--</span
+                >
               </div>
 
-              <!-- Last Updated -->
+              <!-- Last Update -->
               <div
-                class="flex items-center gap-2 bg-slate-900/50 dark:bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 shadow-inner"
+                class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-md px-2.5 py-1"
               >
-                <svg
-                  class="w-4 h-4 text-slate-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <span class="text-[9px] text-slate-500 uppercase font-semibold"
+                  >Updated</span
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  ></path>
-                </svg>
-                <div class="flex flex-col">
-                  <span
-                    class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none"
-                    >Last Updated</span
-                  >
-                  <span
-                    id="dataTanggal"
-                    class="text-sm font-bold text-white leading-tight"
-                    >Memuat...</span
-                  >
-                </div>
+                <span
+                  id="dataTanggal"
+                  class="text-xs font-bold text-slate-800 dark:text-white"
+                  >Memuat...</span
+                >
               </div>
 
-              <!-- Status Live -->
+              <!-- Status -->
               <div
-                class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5"
+                class="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-md px-2.5 py-1"
               >
                 <span
-                  class="w-2 h-2 bg-emerald-400 rounded-full pulse-badge"
+                  class="w-1.5 h-1.5 bg-emerald-500 rounded-full pulse-badge"
                   id="statusIndicator"
                 ></span>
                 <span
-                  class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider"
+                  class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase"
                   id="statusText"
                   >LIVE</span
                 >
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main
-        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6"
-      >
-        <!-- Search & Filter Section -->
-        <section
-          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme animate-fade-in"
-        >
-          <div class="flex flex-col xl:flex-row gap-4">
-            <!-- Search Text Group -->
-            <div class="flex-1 flex flex-col sm:flex-row gap-4">
-              <div class="w-full sm:w-56 relative shrink-0">
-                <select
-                  id="searchCategory"
-                  onchange="searchMerchant()"
-                  class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none text-slate-700 dark:text-slate-200 cursor-pointer appearance-none transition-theme text-sm font-medium"
-                >
-                  <option value="all">Semua Kategori</option>
-                  <option value="namaKanca">Nama Kanca</option>
-                  <option value="uker">Nama Uker</option>
-                  <option value="tid">TID</option>
-                  <option value="mid">MID</option>
-                  <option value="nama">Nama Merchant</option>
-                  <option value="pemrakarsa">Nama RMFT</option>
-                </select>
-                <div
-                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
-                >
-                  <svg
-                    class="w-4 h-4 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+        <!-- Scrollable Main Content -->
+        <main class="flex-1 overflow-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
+          <!-- VIEW 1: DASHBOARD REKAP                    -->
+
+          <div id="viewDashboard" class="space-y-6 animate-fade-in">
+            <!-- Charts Section -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Chart 1: Delta SV per Cabang -->
+              <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-2 transition-theme"
+              >
+                <div class="flex justify-between items-start mb-6">
+                  <div>
+                    <h2
+                      class="text-base font-bold text-slate-800 dark:text-white"
+                    >
+                      Sales Volume MoM
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Dalam Juta Rupiah (Sesuai filter)
+                    </p>
+                  </div>
+                  <button
+                    onclick="
+                      downloadChart('branchChart', 'Sales_Volume_MOM.png')
+                    "
+                    class="p-1.5 text-slate-500 hover:text-brand-600 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+                    title="Download PNG"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="relative min-h-[300px] w-full">
+                  <canvas id="branchChart"></canvas>
                 </div>
               </div>
 
-              <div class="flex-1 relative">
+              <!-- Chart 2: Donut Produktivitas Total -->
+              <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme flex flex-col lg:col-span-1"
+              >
+                <div class="flex justify-between items-start mb-4">
+                  <div>
+                    <h2
+                      class="text-base font-bold text-slate-800 dark:text-white"
+                    >
+                      Status Produktivitas
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Produktif vs Non-Produktif
+                    </p>
+                  </div>
+                </div>
                 <div
-                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                  class="relative flex-1 min-h-[220px] w-full flex justify-center items-center"
+                >
+                  <canvas id="overallProductivityChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Chart 3: Produktivitas per Kanca -->
+              <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-3 transition-theme"
+              >
+                <div class="flex justify-between items-start mb-6">
+                  <div>
+                    <h2
+                      class="text-base font-bold text-slate-800 dark:text-white"
+                    >
+                      Persentase Produktivitas Merchant
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      % Merchant Produktif
+                    </p>
+                  </div>
+                </div>
+                <div class="relative min-h-[300px] w-full flex justify-center">
+                  <canvas id="productivityChart"></canvas>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- VIEW 2: MASTER DATA (Table View)           -->
+
+          <div id="viewData" class="hidden space-y-6 animate-fade-in">
+            <!-- Search & Filter Section -->
+            <section
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme"
+            >
+              <div class="flex flex-col xl:flex-row gap-4">
+                <div class="flex-1 flex flex-col sm:flex-row gap-4">
+                  <div class="w-full sm:w-56 relative shrink-0">
+                    <select
+                      id="searchCategory"
+                      onchange="searchMerchant()"
+                      class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 outline-none text-slate-700 dark:text-slate-200 text-sm font-medium transition-theme"
+                    >
+                      <option value="all">Semua Kategori</option>
+                      <option value="namaKanca">Nama Kanca</option>
+                      <option value="uker">Nama Uker</option>
+                      <option value="tid">TID</option>
+                      <option value="mid">MID</option>
+                      <option value="nama">Nama Merchant</option>
+                      <option value="pemrakarsa">Nama RMFT</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      id="searchInput"
+                      onkeyup="searchMerchant()"
+                      placeholder="Masukkan kata kunci pencarian..."
+                      class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 outline-none transition-theme text-slate-700 dark:text-slate-200 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  class="w-full xl:w-auto flex shadow-sm rounded-lg border border-slate-300 dark:border-slate-600 transition-theme bg-slate-50 dark:bg-slate-900 shrink-0"
+                >
+                  <select
+                    id="svFilterType"
+                    onchange="searchMerchant()"
+                    class="px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 text-sm font-medium border-r border-slate-300 dark:border-slate-600"
+                  >
+                    <option value="all">Filter SV</option>
+                    <option value=">=">SV ≥ (Min)</option>
+                    <option value="<=">SV ≤ (Max)</option>
+                  </select>
+                  <input
+                    type="number"
+                    id="svFilterValue"
+                    onkeyup="searchMerchant()"
+                    placeholder="Nominal"
+                    class="w-full sm:w-40 px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 text-sm"
+                  />
+                </div>
+
+                <div class="flex items-center gap-2 w-full xl:w-auto shrink-0">
+                  <button
+                    onclick="clearSearch()"
+                    class="flex-1 xl:flex-none px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm shadow-sm"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onclick="handleRefresh()"
+                    class="flex-1 xl:flex-none px-4 py-2.5 bg-corporate-600 hover:bg-corporate-500 text-white border border-corporate-600 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Top 25 Penurunan Section -->
+            <section
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme"
+            >
+              <div
+                class="px-5 py-4 border-b border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 flex flex-col sm:flex-row justify-between gap-4"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-8 bg-red-500 rounded-full"></div>
+                  <div>
+                    <h2
+                      class="text-base font-bold text-red-700 dark:text-red-400"
+                    >
+                      At-Risk Merchants (Top 25 Penurunan Sales Volume)
+                    </h2>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    onclick="downloadTop25CSV()"
+                    class="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-medium hover:bg-emerald-700"
+                  >
+                    CSV
+                  </button>
+                  <button
+                    onclick="downloadTop25PDF()"
+                    class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700"
+                  >
+                    PDF
+                  </button>
+                </div>
+              </div>
+              <div class="custom-scrollbar overflow-auto max-h-[350px]">
+                <table class="w-full text-left border-collapse">
+                  <thead
+                    class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+                  >
+                    <tr>
+                      <th
+                        class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                      >
+                        No
+                      </th>
+                      <th
+                        class="px-5 py-3 cursor-pointer border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('top25', 'nama')"
+                        data-table="top25"
+                      >
+                        Merchant
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-top25-nama"
+                        ></span>
+                      </th>
+                      <th
+                        class="px-5 py-3 cursor-pointer border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('top25', 'namaKanca')"
+                        data-table="top25"
+                      >
+                        Lokasi
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-top25-namaKanca"
+                        ></span>
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Terminal Info
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        RMFT
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('top25', 'deltaSv')"
+                        data-table="top25"
+                      >
+                        Δ MOM
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-top25-deltaSv"
+                        ></span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="top25Body"
+                    class="divide-y divide-slate-100 dark:divide-slate-700/50"
+                  ></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Master Data Section -->
+            <section
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme"
+            >
+              <div
+                class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between gap-4"
+              >
+                <div>
+                  <h2
+                    class="text-base font-bold text-slate-800 dark:text-white"
+                  >
+                    Master Data Merchant
+                  </h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    id="resultCount"
+                    class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-200 dark:border-slate-600"
+                    >0 records</span
+                  >
+                  <button
+                    id="btnSelectAllToggle"
+                    onclick="toggleSelectAll()"
+                    class="px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 border border-brand-200 dark:border-brand-800/50 rounded-md text-xs font-medium"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onclick="downloadMerchantDataCSV()"
+                    class="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-medium hover:bg-emerald-700"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+              <div class="custom-scrollbar overflow-auto max-h-[450px]">
+                <table
+                  id="resultTable"
+                  class="w-full text-left border-collapse"
+                >
+                  <thead
+                    class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+                  >
+                    <tr>
+                      <th
+                        class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                      >
+                        No
+                      </th>
+                      <th
+                        class="px-5 py-3 cursor-pointer border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('result', 'nama')"
+                        data-table="result"
+                      >
+                        Merchant
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-result-nama"
+                        ></span>
+                      </th>
+                      <th
+                        class="px-5 py-3 cursor-pointer border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('result', 'namaKanca')"
+                        data-table="result"
+                      >
+                        Lokasi
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-result-namaKanca"
+                        ></span>
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Terminal Info
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        RMFT
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Trx Update
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                      >
+                        SV Update
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right cursor-pointer border-b border-slate-200 dark:border-slate-700"
+                        onclick="requestSort('result', 'deltaSv')"
+                        data-table="result"
+                      >
+                        MoM Δ
+                        <span
+                          class="sort-icon text-[10px] ml-1 opacity-60"
+                          id="icon-result-deltaSv"
+                        ></span>
+                      </th>
+                      <th
+                        class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="resultBody"
+                    class="divide-y divide-slate-100 dark:divide-slate-700/50"
+                  ></tbody>
+                </table>
+              </div>
+              <!-- Pagination Master -->
+              <div
+                id="paginationControlsResult"
+                class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between gap-4"
+              >
+                <div class="flex items-center gap-2">
+                  <select
+                    id="itemsPerPageResult"
+                    onchange="changeItemsPerPage('Result')"
+                    class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+                  >
+                    <option value="10" selected>10</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-xs text-slate-500 mr-2"
+                    id="paginationInfoResult"
+                  ></span>
+                  <button
+                    onclick="prevPage('Result')"
+                    id="btnPrevResult"
+                    class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onclick="nextPage('Result')"
+                    id="btnNextResult"
+                    class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+              <div id="emptyState" class="hidden py-16 text-center">
+                <p
+                  class="text-slate-500 dark:text-slate-400 font-semibold"
+                  id="emptyStateText"
+                >
+                  Tidak ada data
+                </p>
+              </div>
+            </section>
+
+            <!-- Selected Data Table Section -->
+            <section
+              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme"
+            >
+              <div
+                class="px-5 py-4 border-b border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/10 flex flex-col sm:flex-row justify-between gap-4"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-8 bg-emerald-500 rounded-full"></div>
+                  <div>
+                    <h2
+                      class="text-base font-bold text-emerald-800 dark:text-emerald-400"
+                    >
+                      Monitoring List Terpilih
+                    </h2>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    id="selectedCount"
+                    class="bg-white/50 dark:bg-slate-900/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200"
+                    >0 selected</span
+                  >
+                  <button
+                    onclick="downloadSelectedCSV()"
+                    class="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-medium hover:bg-emerald-700"
+                  >
+                    CSV
+                  </button>
+                  <button
+                    onclick="downloadSelectedPDF()"
+                    class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700"
+                  >
+                    PDF
+                  </button>
+                  <button
+                    onclick="clearSelected()"
+                    class="px-3 py-1.5 bg-slate-500 text-white rounded-md text-xs font-medium hover:bg-slate-600"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+              <div class="custom-scrollbar overflow-auto max-h-[350px]">
+                <table
+                  id="selectedTable"
+                  class="w-full text-left border-collapse"
+                >
+                  <thead
+                    class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
+                  >
+                    <tr>
+                      <th
+                        class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                      >
+                        No
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Merchant
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Lokasi
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Terminal Info
+                      </th>
+                      <th
+                        class="px-5 py-3 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        RMFT
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Trx Update
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                      >
+                        SV Update
+                      </th>
+                      <th
+                        class="px-5 py-3 text-right border-b border-slate-200 dark:border-slate-700"
+                      >
+                        MoM Δ
+                      </th>
+                      <th
+                        class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
+                      >
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="selectedBody"
+                    class="divide-y divide-slate-100 dark:divide-slate-700/50"
+                  ></tbody>
+                </table>
+              </div>
+              <!-- Pagination Selected -->
+              <div
+                id="paginationControlsSelected"
+                class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between gap-4"
+              >
+                <div class="flex items-center gap-2">
+                  <select
+                    id="itemsPerPageSelected"
+                    onchange="changeItemsPerPage('Selected')"
+                    class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+                  >
+                    <option value="10" selected>10</option>
+                    <option value="50">50</option>
+                    <option value="all">All</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-xs text-slate-500 mr-2"
+                    id="paginationInfoSelected"
+                  ></span>
+                  <button
+                    onclick="prevPage('Selected')"
+                    id="btnPrevSelected"
+                    class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onclick="nextPage('Selected')"
+                    id="btnNextSelected"
+                    class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+              <div id="selectedEmptyState" class="py-12 text-center">
+                <p
+                  class="text-slate-500 dark:text-slate-400 font-medium text-sm"
+                >
+                  Belum ada merchant yang dipilih.
+                </p>
+              </div>
+            </section>
+
+            <!-- Summary Cards (Moved to bottom of Master Data View) -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <!-- Summary Trx -->
+              <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
+              >
+                <div>
+                  <p
+                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Total Δ Trx (Selected)
+                  </p>
+                  <p
+                    id="totalTrx"
+                    class="text-2xl font-bold text-slate-800 dark:text-white mt-1 transition-colors duration-300"
+                  >
+                    0
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center border border-blue-100 dark:border-blue-800/50"
                 >
                   <svg
-                    class="w-4 h-4 text-slate-400"
+                    class="w-6 h-6 text-brand-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -390,2554 +1104,108 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                     />
                   </svg>
                 </div>
-                <input
-                  type="text"
-                  id="searchInput"
-                  onkeyup="searchMerchant()"
-                  placeholder="Masukkan kata kunci pencarian..."
-                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-theme text-slate-700 dark:text-slate-200 placeholder-slate-400 text-sm"
-                />
               </div>
-            </div>
-
-            <!-- SV Filter Group -->
-            <div
-              class="w-full xl:w-auto flex shadow-sm rounded-lg border border-slate-300 dark:border-slate-600 transition-theme bg-slate-50 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-brand-500/50 focus-within:border-brand-500 shrink-0"
-            >
-              <select
-                id="svFilterType"
-                onchange="searchMerchant()"
-                class="px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 cursor-pointer appearance-none text-sm font-medium border-r border-slate-300 dark:border-slate-600"
-              >
-                <option value="all">Filter SV</option>
-                <option value=">=">SV ≥ (Min)</option>
-                <option value="<=">SV ≤ (Max)</option>
-              </select>
-              <input
-                type="number"
-                id="svFilterValue"
-                onkeyup="searchMerchant()"
-                placeholder="Nominal (Cth: 15000000)"
-                class="w-full sm:w-48 px-3 py-2.5 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400 text-sm"
-              />
-            </div>
-
-            <!-- Button Group -->
-            <div class="flex items-center gap-3 w-full xl:w-auto shrink-0">
-              <button
-                onclick="clearSearch()"
-                class="flex-1 xl:flex-none px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm shadow-sm"
-              >
-                Clear
-              </button>
-              <button
-                onclick="handleRefresh()"
-                class="flex-1 xl:flex-none px-5 py-2.5 bg-corporate-600 hover:bg-corporate-500 text-white border border-corporate-600 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  ></path>
-                </svg>
-                Refresh
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Charts Section -->
-        <section
-          class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in"
-          style="animation-delay: 0.1s"
-        >
-          <!-- Chart 1: Delta SV per Cabang -->
-          <div
-            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-2 transition-theme"
-          >
-            <div class="flex justify-between items-start mb-6">
-              <div>
-                <h2 class="text-base font-bold text-slate-800 dark:text-white">
-                  Sales Volume MoM
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Dalam Juta Rupiah (Sesuai filter)
-                </p>
-              </div>
-              <button
-                onclick="downloadChart('branchChart', 'Sales_Volume_MOM.png')"
-                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
-                title="Download PNG"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-            <div class="relative min-h-[350px] w-full">
-              <canvas id="branchChart"></canvas>
-            </div>
-          </div>
-
-          <!-- Chart 2: Donut Produktivitas Total -->
-          <div
-            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 transition-theme"
-          >
-            <div class="flex justify-between items-start mb-6">
-              <div>
-                <h2 class="text-base font-bold text-slate-800 dark:text-white">
-                  Status Produktivitas
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Produktif vs Non-Produktif
-                </p>
-              </div>
-              <button
-                onclick="
-                  downloadChart(
-                    'overallProductivityChart',
-                    'Status_Produktivitas.png',
-                  )
-                "
-                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
-                title="Download PNG"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-            <div class="relative h-[250px] w-full flex justify-center">
-              <canvas id="overallProductivityChart"></canvas>
-            </div>
-          </div>
-
-          <!-- Chart 3: Produktivitas per Kanca -->
-          <div
-            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-3 transition-theme"
-          >
-            <div class="flex justify-between items-start mb-6">
-              <div>
-                <h2 class="text-base font-bold text-slate-800 dark:text-white">
-                  Persentase Produktivitas Merchant
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  % Merchant Produktif
-                </p>
-              </div>
-              <button
-                onclick="
-                  downloadChart(
-                    'productivityChart',
-                    'Produktivitas_Merchant.png',
-                  )
-                "
-                class="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
-                title="Download PNG"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-            <div class="relative min-h-[350px] w-full flex justify-center">
-              <canvas id="productivityChart"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <!-- Top 25 Penurunan Section -->
-        <section
-          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
-          style="animation-delay: 0.2s"
-        >
-          <div
-            class="px-5 py-4 border-b border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-theme"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-2 h-8 bg-red-500 rounded-full"></div>
-              <div>
-                <h2 class="text-base font-bold text-red-700 dark:text-red-400">
-                  At-Risk Merchants (Top 25 Penurunan)
-                </h2>
-                <p
-                  class="text-xs font-medium text-red-600/80 dark:text-red-400/80 mt-0.5"
-                >
-                  Prioritas monitoring segera berdasarkan filter aktif
-                </p>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                onclick="downloadTop25CSV()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-                CSV
-              </button>
-              <button
-                onclick="downloadTop25PDF()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  ></path>
-                </svg>
-                PDF
-              </button>
-            </div>
-          </div>
-          <div class="custom-scrollbar overflow-auto max-h-[400px]">
-            <table class="w-full text-left border-collapse">
-              <thead
-                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
-              >
-                <tr>
-                  <th
-                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
-                  >
-                    No
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('top25', 'nama')"
-                    data-table="top25"
-                  >
-                    Merchant
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-top25-nama"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('top25', 'namaKanca')"
-                    data-table="top25"
-                  >
-                    Kanca / Uker
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-top25-namaKanca"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('top25', 'tid')"
-                    data-table="top25"
-                  >
-                    Terminal Info
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-top25-tid"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('top25', 'pemrakarsa')"
-                    data-table="top25"
-                  >
-                    RMFT
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-top25-pemrakarsa"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('top25', 'deltaSv')"
-                    data-table="top25"
-                  >
-                    Δ MOM
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-top25-deltaSv"
-                    ></span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                id="top25Body"
-                class="divide-y divide-slate-100 dark:divide-slate-700/50"
-              >
-                <!-- Data Top 25 -->
-              </tbody>
-            </table>
-          </div>
-          <!-- Pagination Top 25 -->
-          <div
-            id="paginationControlsTop25"
-            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400"
-                >Show</span
-              >
-              <select
-                id="itemsPerPageTop25"
-                onchange="changeItemsPerPage('Top25')"
-                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
-              >
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="25">25</option>
-                <option value="all">All</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-2">
-              <span
-                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
-                id="paginationInfoTop25"
-                >Showing 0 to 0 of 0</span
-              >
-              <button
-                onclick="prevPage('Top25')"
-                id="btnPrevTop25"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Prev
-              </button>
-              <button
-                onclick="nextPage('Top25')"
-                id="btnNextTop25"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Result Table Section -->
-        <section
-          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
-          style="animation-delay: 0.3s"
-        >
-          <div
-            class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-          >
-            <div>
-              <h2 class="text-base font-bold text-slate-800 dark:text-white">
-                Master Data Merchant
-              </h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Pilih merchant untuk dimasukkan ke daftar pantauan khusus
-              </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span
-                id="resultCount"
-                class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-200 dark:border-slate-600"
-                >0 records</span
-              >
-              <button
-                id="btnSelectAllToggle"
-                onclick="toggleSelectAll()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 border border-brand-200 dark:border-brand-800/50 rounded-md text-xs font-medium hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors shadow-sm"
-                title="Select All"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                Select All
-              </button>
-              <button
-                onclick="downloadMerchantDataCSV()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
-                title="Download CSV"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-                Export CSV
-              </button>
-            </div>
-          </div>
-          <div class="custom-scrollbar overflow-auto max-h-[500px]">
-            <table id="resultTable" class="w-full text-left border-collapse">
-              <thead
-                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
-              >
-                <tr>
-                  <th
-                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
-                  >
-                    No
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'nama')"
-                    data-table="result"
-                  >
-                    Merchant
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-nama"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'namaKanca')"
-                    data-table="result"
-                  >
-                    Lokasi
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-namaKanca"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'tid')"
-                    data-table="result"
-                  >
-                    Terminal Info
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-tid"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'pemrakarsa')"
-                    data-table="result"
-                  >
-                    RMFT
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-pemrakarsa"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'trxUpdate')"
-                    data-table="result"
-                  >
-                    Trx
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-trxUpdate"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'svUpdate')"
-                    data-table="result"
-                  >
-                    SV
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-svUpdate"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('result', 'deltaSv')"
-                    data-table="result"
-                  >
-                    MoM Δ
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-result-deltaSv"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                id="resultBody"
-                class="divide-y divide-slate-100 dark:divide-slate-700/50"
-              >
-                <!-- Data rows will be inserted here -->
-              </tbody>
-            </table>
-          </div>
-          <!-- Pagination Result -->
-          <div
-            id="paginationControlsResult"
-            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400"
-                >Show</span
-              >
-              <select
-                id="itemsPerPageResult"
-                onchange="changeItemsPerPage('Result')"
-                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
-              >
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="all">All</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-2">
-              <span
-                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
-                id="paginationInfoResult"
-                >Showing 0 to 0 of 0</span
-              >
-              <button
-                onclick="prevPage('Result')"
-                id="btnPrevResult"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Prev
-              </button>
-              <button
-                onclick="nextPage('Result')"
-                id="btnNextResult"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-          <div id="emptyState" class="hidden py-16 text-center">
-            <svg
-              class="w-16 h-16 mx-auto text-slate-300 dark:text-slate-600 mb-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-dasharray="3 4"
-              />
-            </svg>
-            <p
-              class="text-slate-500 dark:text-slate-400 font-semibold"
-              id="emptyStateText"
-            >
-              Tidak ada data ditemukan
-            </p>
-            <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">
-              Coba sesuaikan kata kunci atau filter pencarian.
-            </p>
-          </div>
-        </section>
-
-        <!-- Selected Data Table Section -->
-        <section
-          class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 overflow-hidden transition-theme animate-fade-in"
-          style="animation-delay: 0.4s"
-        >
-          <div
-            class="px-5 py-4 border-b border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-theme"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-2 h-8 bg-emerald-500 rounded-full"></div>
-              <div>
-                <h2
-                  class="text-base font-bold text-emerald-800 dark:text-emerald-400"
-                >
-                  Monitoring List Terpilih
-                </h2>
-                <p
-                  class="text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80 mt-0.5"
-                >
-                  Daftar merchant yang sedang Anda pantau secara khusus
-                </p>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span
-                id="selectedCount"
-                class="bg-white/50 dark:bg-slate-900/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200 dark:border-emerald-800"
-                >0 selected</span
-              >
-              <button
-                onclick="downloadSelectedCSV()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
-              >
-                CSV
-              </button>
-              <button
-                onclick="downloadSelectedPDF()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors"
-              >
-                PDF
-              </button>
-              <button
-                onclick="clearSelected()"
-                class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
-          <div class="custom-scrollbar overflow-auto max-h-[400px]">
-            <table id="selectedTable" class="w-full text-left border-collapse">
-              <thead
-                class="sticky-header transition-theme text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold"
-              >
-                <tr>
-                  <th
-                    class="px-5 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-700"
-                  >
-                    No
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'nama')"
-                    data-table="selected"
-                  >
-                    Merchant
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-nama"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'namaKanca')"
-                    data-table="selected"
-                  >
-                    Lokasi
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-namaKanca"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'tid')"
-                    data-table="selected"
-                  >
-                    Terminal Info
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-tid"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'pemrakarsa')"
-                    data-table="selected"
-                  >
-                    RMFT
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-pemrakarsa"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'trxUpdate')"
-                    data-table="selected"
-                  >
-                    Trx
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-trxUpdate"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'svUpdate')"
-                    data-table="selected"
-                  >
-                    SV
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-svUpdate"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-700"
-                    onclick="requestSort('selected', 'deltaSv')"
-                    data-table="selected"
-                  >
-                    MoM Δ
-                    <span
-                      class="sort-icon text-[10px] ml-1 opacity-60"
-                      id="icon-selected-deltaSv"
-                    ></span>
-                  </th>
-                  <th
-                    class="px-5 py-3 text-center border-b border-slate-200 dark:border-slate-700"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                id="selectedBody"
-                class="divide-y divide-slate-100 dark:divide-slate-700/50"
-              >
-                <!-- Selected rows -->
-              </tbody>
-            </table>
-          </div>
-          <!-- Pagination Selected -->
-          <div
-            id="paginationControlsSelected"
-            class="hidden px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-theme"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400"
-                >Show</span
-              >
-              <select
-                id="itemsPerPageSelected"
-                onchange="changeItemsPerPage('Selected')"
-                class="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-xs outline-none focus:border-brand-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition-theme"
-              >
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="50">50</option>
-                <option value="all">All</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-2">
-              <span
-                class="text-xs text-slate-500 dark:text-slate-400 mr-2"
-                id="paginationInfoSelected"
-                >Showing 0 to 0 of 0</span
-              >
-              <button
-                onclick="prevPage('Selected')"
-                id="btnPrevSelected"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Prev
-              </button>
-              <button
-                onclick="nextPage('Selected')"
-                id="btnNextSelected"
-                class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-          <div id="selectedEmptyState" class="py-12 text-center">
-            <svg
-              class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <p class="text-slate-500 dark:text-slate-400 font-medium text-sm">
-              Belum ada merchant yang dipilih.
-            </p>
-            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Gunakan tombol "Select" pada Master Data di atas.
-            </p>
-          </div>
-        </section>
-
-        <!-- Summary Cards & Activity Log Section -->
-        <div
-          class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in"
-          style="animation-delay: 0.5s"
-        >
-          <section class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Summary Trx -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
-            >
-              <div>
-                <p
-                  class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-                >
-                  Total Δ Trx (Selected)
-                </p>
-                <p
-                  id="totalTrx"
-                  class="text-2xl font-bold text-slate-800 dark:text-white mt-2 transition-colors duration-300"
-                >
-                  0
-                </p>
-              </div>
+              <!-- Summary SV -->
               <div
-                class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center border border-blue-100 dark:border-blue-800/50"
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
               >
-                <svg
-                  class="w-6 h-6 text-brand-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <div>
+                  <p
+                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Total Δ SV (Selected)
+                  </p>
+                  <p
+                    id="totalSv"
+                    class="text-2xl font-bold text-slate-800 dark:text-white mt-1 transition-colors duration-300"
+                  >
+                    Rp 0
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center border border-emerald-100 dark:border-emerald-800/50"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
+                  <svg
+                    class="w-6 h-6 text-emerald-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
               </div>
-            </div>
-
-            <!-- Summary SV -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between transition-theme"
-            >
-              <div>
-                <p
-                  class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-                >
-                  Total Δ SV (Selected)
-                </p>
-                <p
-                  id="totalSv"
-                  class="text-2xl font-bold text-slate-800 dark:text-white mt-2 transition-colors duration-300"
-                >
-                  Rp 0
-                </p>
-              </div>
-              <div
-                class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center border border-emerald-100 dark:border-emerald-800/50"
-              >
-                <svg
-                  class="w-6 h-6 text-emerald-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </section>
-
-          <!-- Activity Log -->
-          <section
-            class="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700 p-5 lg:col-span-1 transition-theme"
-          >
-            <div
-              class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700/50"
-            >
-              <h2 class="text-sm font-bold text-slate-800 dark:text-white">
-                Activity Log
-              </h2>
-              <span
-                class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded font-medium"
-                >Last 2</span
-              >
-            </div>
-            <ul id="activityLogList" class="space-y-4">
-              <!-- Logs -->
-            </ul>
-          </section>
-        </div>
-      </main>
-
-      <!-- Footer Korporat -->
-      <footer
-        class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 mt-10 transition-theme"
-      >
-        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div
-            class="flex flex-col md:flex-row items-center justify-between gap-4"
-          >
-            <p
-              class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide"
-            >
-              Merchant Monitoring System &copy; 2026 Internal Banking Dashboard
-            </p>
-            <div
-              class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400"
-            >
-              <span
-                >Developed by
-                <span class="font-bold text-slate-700 dark:text-slate-200"
-                  >Bayu Dwi Suharminto</span
-                ></span
-              >
-              <span class="hidden sm:inline text-slate-300 dark:text-slate-700"
-                >|</span
-              >
-              <a
-                href="https://instagram.com/bayudwis_07"
-                target="_blank"
-                class="flex items-center gap-1.5 hover:text-brand-500 dark:hover:text-brand-400 transition-colors group"
-              >
-                <svg
-                  class="w-3.5 h-3.5 group-hover:scale-110 transition-transform"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zm0 1.5h8.5c2.34 0 4.25 1.91 4.25 4.25v8.5c0 2.34-1.91 4.25-4.25 4.25h-8.5c-2.34 0-4.25-1.91-4.25-4.25v-8.5c0-2.34 1.91-4.25 4.25-4.25zm9.25 2.25a1 1 0 100 2 1 1 0 000-2zM12 7a5 5 0 100 10 5 5 0 000-10zm0 1.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7z"
-                  />
-                </svg>
-                <span class="font-medium">@bayudwis_07</span>
-              </a>
-            </div>
+            </section>
           </div>
-        </div>
-      </footer>
+        </main>
+      </div>
     </div>
 
-    <script>
-      // ==========================================
-      // DARK MODE LOGIC
-      // ==========================================
-      const themeToggleBtn = document.getElementById("themeToggleBtn");
-      const darkIcon = document.getElementById("themeToggleDarkIcon");
-      const lightIcon = document.getElementById("themeToggleLightIcon");
-
-      function updateThemeIcons() {
-        if (document.documentElement.classList.contains("dark")) {
-          darkIcon.classList.add("hidden");
-          lightIcon.classList.remove("hidden");
-        } else {
-          lightIcon.classList.add("hidden");
-          darkIcon.classList.remove("hidden");
-        }
-      }
-
-      themeToggleBtn.addEventListener("click", function () {
-        document.documentElement.classList.toggle("dark");
-
-        if (document.documentElement.classList.contains("dark")) {
-          localStorage.setItem("color-theme", "dark");
-        } else {
-          localStorage.setItem("color-theme", "light");
-        }
-
-        updateThemeIcons();
-        updateChartsTheme(); // Update warna teks/grid chart saat theme berganti
-      });
-
-      // Init Theme Icons
-      updateThemeIcons();
-
-      // ==========================================
-      // ORIGINAL VARIABLES & LOGIC
-      // ==========================================
-      const Blow_Job = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2";
-      const Hand_Job = "J6cDZYQ3AtSlhUbHZPYnBqYzVRbUlUN0JHNTZWS";
-      const Sakura = "jNqanRYSV9tQ1dmdDZrZVlFbzJ2R1hBWGtYeXZwbC";
-      const Open_BO = "00Z3VUUGMvZXhlYz90b2tlbj1CbHVlcmltMzIxISE=";
-      const Berkualitas = atob(Blow_Job + Hand_Job + Sakura + Open_BO);
-
-      const VISITOR_NAMESPACE = "merchant_monitoring_bds_dashboard";
-      const VISITOR_KEY = "unique_device_visits";
-
-      Chart.register(ChartDataLabels);
-
-      let merchantData = [];
-      let selectedMerchants = [];
-      let prevTotalTrx = 0;
-      let prevTotalSv = 0;
-
-      let pagination = {
-        Result: { current: 1, itemsPerPage: 10 },
-        Top25: { current: 1, itemsPerPage: 10 },
-        Selected: { current: 1, itemsPerPage: 10 },
-      };
-
-      let sortConfigs = {
-        top25: { key: "deltaSv", direction: "asc" },
-        result: { key: null, direction: "asc" },
-        selected: { key: null, direction: "asc" },
-      };
-
-      let branchChartInstance = null;
-      let productivityChartInstance = null;
-      let overallProductivityChartInstance = null;
-
-      const activityLogs = [];
-
-      // ==========================================
-      // UTILITY FUNCTIONS
-      // ==========================================
-      function formatCurrency(num) {
-        return "Rp " + num.toLocaleString("id-ID");
-      }
-
-      function formatNumber(num) {
-        return num.toLocaleString("id-ID");
-      }
-
-      function getDeltaClass(delta) {
-        if (delta > 0)
-          return "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20";
-        if (delta < 0)
-          return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20";
-        return "text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800";
-      }
-
-      function getDeltaPrefix(delta) {
-        if (delta > 0) return "+";
-        return "";
-      }
-
-      function animateValue(obj, start, end, duration, formatter, prefix = "") {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-          if (!startTimestamp) startTimestamp = timestamp;
-          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-          const easeOut = 1 - Math.pow(1 - progress, 4);
-          const currentVal = start + (end - start) * easeOut;
-          obj.textContent = prefix + formatter(Math.round(currentVal));
-          if (progress < 1) {
-            window.requestAnimationFrame(step);
-          } else {
-            obj.textContent = prefix + formatter(end);
-          }
-        };
-        window.requestAnimationFrame(step);
-      }
-
-      // ==========================================
-      // API & LOGS
-      // ==========================================
-      async function getUserIP() {
-        try {
-          const response = await fetch("https://api.ipify.org?format=json");
-          const data = await response.json();
-          return data.ip;
-        } catch (error) {
-          return "Unknown IP";
-        }
-      }
-
-      function getUserLocation() {
-        return new Promise((resolve) => {
-          if (!navigator.geolocation) {
-            resolve("Browser tidak support lokasi");
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const lat = position.coords.latitude;
-              const lng = position.coords.longitude;
-              resolve(`https://www.google.com/maps?q=${lat},${lng}`);
-            },
-            (error) => {
-              resolve("Izin ditolak / GPS mati");
-            },
-            { timeout: 5000 },
-          );
-        });
-      }
-
-      async function addActivityLog(message) {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        });
-
-        activityLogs.unshift({ time: timeStr, message });
-        if (activityLogs.length > 2) activityLogs.pop();
-        renderActivityLog();
-
-        const userIP = await getUserIP();
-        const userDevice = navigator.userAgent;
-        const userLocation = await getUserLocation();
-
-        try {
-          fetch(Berkualitas, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              message: message,
-              ip: userIP,
-              device: userDevice,
-              location: userLocation,
-            }),
-          });
-        } catch (error) {
-          console.error("Gagal mengirim log:", error);
-        }
-      }
-
-      function renderActivityLog() {
-        const list = document.getElementById("activityLogList");
-        if (!list) return;
-        list.innerHTML = "";
-        if (activityLogs.length === 0) {
-          list.innerHTML =
-            '<li class="text-xs text-slate-400 italic">Belum ada aktifitas...</li>';
-          return;
-        }
-
-        activityLogs.forEach((log, index) => {
-          list.innerHTML += `
-            <li class="flex items-start gap-3 text-sm animate-fade-in" style="animation-delay: ${index * 0.05}s">
-                <span class="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap mt-1 font-mono font-medium">[${log.time}]</span>
-                <span class="text-slate-700 dark:text-slate-300 flex-1 leading-snug text-xs font-medium">${log.message}</span>
-            </li>
-          `;
-        });
-      }
-
-      async function initVisitorCount() {
-        const countEl = document.getElementById("visitorCount");
-        const hasVisited = localStorage.getItem("has_visited_mms_dashboard");
-
-        let baseUrl = `https://api.counterapi.dev/v1/${VISITOR_NAMESPACE}/${VISITOR_KEY}`;
-        let targetUrl = hasVisited ? baseUrl : `${baseUrl}/up`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-
-        try {
-          const response = await fetch(proxyUrl);
-          if (!response.ok) throw new Error("API Proxy Error");
-          const data = await response.json();
-          if (data && data.count !== undefined) {
-            countEl.textContent = formatNumber(data.count);
-            if (!hasVisited)
-              localStorage.setItem("has_visited_mms_dashboard", "true");
-          } else throw new Error("Invalid data format");
-        } catch (e) {
-          let localCount = parseInt(
-            localStorage.getItem("local_visitor_count") || "1245",
-          );
-          if (!hasVisited) {
-            localCount += 1;
-            localStorage.setItem("has_visited_mms_dashboard", "true");
-            localStorage.setItem("local_visitor_count", localCount.toString());
-          }
-          countEl.textContent = formatNumber(localCount);
-        }
-      }
-
-      // ==========================================
-      // FETCH DATA
-      // ==========================================
-      async function fetchSheetData() {
-        const tbody = document.getElementById("resultBody");
-        const emptyState = document.getElementById("emptyState");
-        const emptyStateText = document.getElementById("emptyStateText");
-        const countEl = document.getElementById("resultCount");
-        const statusText = document.getElementById("statusText");
-        const statusIndicator = document.getElementById("statusIndicator");
-
-        tbody.innerHTML = "";
-        emptyState.classList.remove("hidden");
-        emptyStateText.innerHTML =
-          '<span class="loader"></span> <span class="ml-2">Memuat Data...</span>';
-        countEl.textContent = "Loading...";
-        statusText.textContent = "CONNECTING";
-        statusIndicator.classList.replace("bg-emerald-400", "bg-amber-400");
-        statusIndicator.parentElement.classList.replace(
-          "bg-emerald-500/10",
-          "bg-amber-500/10",
-        );
-        statusIndicator.parentElement.classList.replace(
-          "border-emerald-500/20",
-          "border-amber-500/20",
-        );
-
-        try {
-          const response = await fetch(Berkualitas);
-          const data = await response.json();
-          const rawData = Array.isArray(data) ? data : data.data || [];
-
-          merchantData = rawData.map((item) => {
-            const trxLalu = Number(
-              item.trxLast || item.trxLalu || item.TRX_LALU || 0,
-            );
-            const svLalu = Number(
-              item.svLast || item.svLalu || item.SV_LALU || 0,
-            );
-            const trxUpdate = Number(item.trxUpdate || item.TRX_UPDATE || 0);
-            const svUpdate = Number(item.svUpdate || item.SV_UPDATE || 0);
-
-            return {
-              kodeKanca: String(item.kodeKanca || "-"),
-              namaKanca: String(item.namaKanca || "-"),
-              kodeUker: String(item.kodeUker || "-"),
-              uker: String(item.namaUker || item.uker || item.UKER || "-"),
-              tid: String(item.tid || item.TID || "-"),
-              mid: String(item.mid || item.MID || "-"),
-              nama: String(item.namaMerchant || item.nama || item.NAMA || "-"),
-              pn: String(item.pn || item.PN || "-"),
-              pemrakarsa: String(item.pemrakarsa || item.PEMRAKARSA || "-"),
-              trxLalu,
-              svLalu,
-              trxUpdate,
-              svUpdate,
-              deltaTrx: trxUpdate - trxLalu,
-              deltaSv: svUpdate - svLalu,
-            };
-          });
-
-          emptyStateText.textContent = "Tidak ada data ditemukan";
-          statusText.textContent = "LIVE";
-          statusIndicator.classList.replace("bg-amber-400", "bg-emerald-400");
-          statusIndicator.parentElement.classList.replace(
-            "bg-amber-500/10",
-            "bg-emerald-500/10",
-          );
-          statusIndicator.parentElement.classList.replace(
-            "border-amber-500/20",
-            "border-emerald-500/20",
-          );
-
-          if (data.currentDate) setCurrentDate(new Date(data.currentDate));
-          else setCurrentDate(new Date());
-
-          pagination.Result.current = 1;
-          pagination.Top25.current = 1;
-
-          renderResultTable(getFilteredData());
-          renderCharts(getBaseFilteredData());
-          renderTop25Table();
-
-          updateSortIcons("top25");
-          updateSortIcons("result");
-          updateSortIcons("selected");
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          emptyStateText.innerHTML =
-            '<span class="text-red-500">Gagal mengambil data. Server tidak merespon.</span>';
-          statusText.textContent = "OFFLINE";
-          statusIndicator.classList.replace("bg-amber-400", "bg-red-500");
-          statusIndicator.parentElement.classList.replace(
-            "bg-amber-500/10",
-            "bg-red-500/10",
-          );
-          statusIndicator.parentElement.classList.replace(
-            "border-amber-500/20",
-            "border-red-500/20",
-          );
-          statusIndicator.classList.remove("pulse-badge");
-        }
-      }
-
-      function handleRefresh() {
-        addActivityLog("Memperbarui data server (Refresh)");
-        fetchSheetData();
-      }
-
-      // ==========================================
-      // PAGINATION & SORTING LOGIC
-      // ==========================================
-      function handlePagination(dataArray, tableType) {
-        let itemsPerPage = pagination[tableType].itemsPerPage;
-        let currentPage = pagination[tableType].current;
-
-        if (itemsPerPage !== "all") {
-          const totalItems = dataArray.length;
-          const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-          if (currentPage > totalPages) currentPage = totalPages;
-          if (currentPage < 1) currentPage = 1;
-
-          pagination[tableType].current = currentPage;
-          const startIndex = (currentPage - 1) * itemsPerPage;
-          const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-
-          return {
-            paginatedData: dataArray.slice(startIndex, endIndex),
-            startIndex,
-            endIndex,
-            totalItems,
-            totalPages,
-            currentPage,
-          };
-        }
-        return {
-          paginatedData: dataArray,
-          startIndex: 0,
-          endIndex: dataArray.length,
-          totalItems: dataArray.length,
-          totalPages: 1,
-          currentPage: 1,
-        };
-      }
-
-      function updatePaginationUI(tableType, pageInfo) {
-        const controls = document.getElementById(
-          `paginationControls${tableType}`,
-        );
-        const info = document.getElementById(`paginationInfo${tableType}`);
-        const btnPrev = document.getElementById(`btnPrev${tableType}`);
-        const btnNext = document.getElementById(`btnNext${tableType}`);
-
-        if (!controls) return;
-        if (pageInfo.totalItems === 0) {
-          controls.classList.add("hidden");
-          return;
-        }
-
-        controls.classList.remove("hidden");
-        if (pagination[tableType].itemsPerPage !== "all") {
-          info.textContent = `Menampilkan ${pageInfo.startIndex + 1} - ${pageInfo.endIndex} dari ${pageInfo.totalItems}`;
-          btnPrev.disabled = pageInfo.currentPage === 1;
-          btnNext.disabled = pageInfo.currentPage === pageInfo.totalPages;
-        } else {
-          info.textContent = `Menampilkan semua ${pageInfo.totalItems} data`;
-          btnPrev.disabled = true;
-          btnNext.disabled = true;
-        }
-      }
-
-      function changeItemsPerPage(tableType) {
-        const select = document.getElementById(`itemsPerPage${tableType}`);
-        pagination[tableType].itemsPerPage =
-          select.value === "all" ? "all" : parseInt(select.value);
-        pagination[tableType].current = 1;
-        if (tableType === "Result") renderResultTable(getFilteredData());
-        if (tableType === "Top25") renderTop25Table();
-        if (tableType === "Selected") renderSelectedTable();
-      }
-
-      function nextPage(tableType) {
-        pagination[tableType].current++;
-        if (tableType === "Result") renderResultTable(getFilteredData());
-        if (tableType === "Top25") renderTop25Table();
-        if (tableType === "Selected") renderSelectedTable();
-      }
-
-      function prevPage(tableType) {
-        if (pagination[tableType].current > 1) {
-          pagination[tableType].current--;
-          if (tableType === "Result") renderResultTable(getFilteredData());
-          if (tableType === "Top25") renderTop25Table();
-          if (tableType === "Selected") renderSelectedTable();
-        }
-      }
-
-      function applySort(dataArray, sortConfig) {
-        if (!sortConfig.key) return dataArray;
-        return [...dataArray].sort((a, b) => {
-          let valA = a[sortConfig.key];
-          let valB = b[sortConfig.key];
-          if (typeof valA === "string") {
-            valA = valA.toLowerCase();
-            valB = valB.toLowerCase();
-          }
-          if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
-          if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
-
-      function requestSort(table, key) {
-        if (sortConfigs[table].key === key)
-          sortConfigs[table].direction =
-            sortConfigs[table].direction === "asc" ? "desc" : "asc";
-        else {
-          sortConfigs[table].key = key;
-          sortConfigs[table].direction = "asc";
-        }
-        updateSortIcons(table);
-
-        if (table === "result") {
-          pagination.Result.current = 1;
-          renderResultTable(getFilteredData());
-        } else if (table === "selected") {
-          pagination.Selected.current = 1;
-          renderSelectedTable();
-        } else if (table === "top25") {
-          pagination.Top25.current = 1;
-          renderTop25Table();
-        }
-      }
-
-      function updateSortIcons(table) {
-        document
-          .querySelectorAll(`th[data-table="${table}"] .sort-icon`)
-          .forEach((el) => (el.innerHTML = ""));
-        const config = sortConfigs[table];
-        if (config.key) {
-          const iconEl = document.getElementById(`icon-${table}-${config.key}`);
-          if (iconEl)
-            iconEl.innerHTML =
-              config.direction === "asc" ? "&#9650;" : "&#9660;";
-        }
-      }
-
-      // ==========================================
-      // UI RENDER: TABLES
-      // ==========================================
-      // Fungsi bantuan untuk membuat baris tabel standar untuk menjaga konsistensi UI & Mode Gelap
-      function generateTableRowHTML(
-        item,
-        rowNo,
-        isSelected,
-        showActionBtn = "Select",
-      ) {
-        const dTrx = item.deltaTrx;
-        const dSv = item.deltaSv;
-
-        let actionBtnHTML = "";
-        if (showActionBtn === "Select") {
-          actionBtnHTML = `
-            <button onclick="selectMerchant('${item.tid}')" class="px-3 py-1.5 rounded text-xs font-semibold transition-colors ${isSelected ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed" : "bg-brand-500 text-white hover:bg-brand-600 shadow-sm"}" ${isSelected ? "disabled" : ""}>
-              ${isSelected ? "Added" : "Select"}
-            </button>`;
-        } else if (showActionBtn === "Remove") {
-          actionBtnHTML = `
-            <button onclick="removeMerchant('${item.tid}')" class="px-3 py-1.5 bg-red-500 text-white rounded text-xs font-semibold hover:bg-red-600 shadow-sm transition-colors">
-              Remove
-            </button>`;
-        } else if (showActionBtn === "Top25") {
-          // Tidak ada tombol action di tabel top 25
-          actionBtnHTML = `
-             <span class="inline-flex px-2 py-1 rounded text-xs font-bold border ${dSv > 0 ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"}">
-                ${getDeltaPrefix(dSv)}${formatCurrency(dSv)}
-             </span>`;
-        }
-
-        const isTop25 = showActionBtn === "Top25";
-
-        return `
-          <td class="px-5 py-3 text-sm text-center text-slate-500 dark:text-slate-400 whitespace-nowrap">${rowNo}</td>
-          <td class="px-5 py-3 text-sm font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">${item.nama}</td>
-          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
-            <div class="flex flex-col gap-1">
-                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-6 inline-block">KC:</span> ${item.namaKanca}</div>
-                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-6 inline-block">UK:</span> ${item.uker}</div>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 font-mono whitespace-nowrap">
-            <div class="flex flex-col gap-1">
-                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-4 inline-block">T:</span> ${item.tid}</div>
-                <div><span class="font-semibold text-slate-400 dark:text-slate-500 w-4 inline-block">M:</span> ${item.mid}</div>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">${item.pemrakarsa}</td>
-          
-          ${
-            isTop25
-              ? `
-             <td class="px-5 py-3 text-right whitespace-nowrap">${actionBtnHTML}</td>
-          `
-              : `
-          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 text-right whitespace-nowrap">
-            <div class="flex justify-between gap-4 mb-1">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">MOM:</span> <span>${formatNumber(item.trxLalu)}</span>
-            </div>
-            <div class="flex justify-between gap-4">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">NOW:</span> <span class="font-semibold text-slate-800 dark:text-slate-200">${formatNumber(item.trxUpdate)}</span>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 text-right whitespace-nowrap">
-            <div class="flex justify-between gap-4 mb-1">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">MOM:</span> <span>${formatCurrency(item.svLalu)}</span>
-            </div>
-            <div class="flex justify-between gap-4">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">NOW:</span> <span class="font-semibold text-slate-800 dark:text-slate-200">${formatCurrency(item.svUpdate)}</span>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-right whitespace-nowrap">
-            <div class="flex justify-between gap-3 mb-1 text-xs">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">TRX:</span>
-                <span class="${dTrx > 0 ? "text-emerald-600 dark:text-emerald-400" : dTrx < 0 ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-slate-400"} font-bold">${getDeltaPrefix(dTrx)}${formatNumber(dTrx)}</span>
-            </div>
-            <div class="flex justify-between gap-3 text-xs">
-                <span class="font-semibold text-[10px] text-slate-400 dark:text-slate-500">SV:</span>
-                <span class="${dSv > 0 ? "text-emerald-600 dark:text-emerald-400" : dSv < 0 ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-slate-400"} font-bold">${getDeltaPrefix(dSv)}${formatCurrency(dSv)}</span>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-center whitespace-nowrap">${actionBtnHTML}</td>
-          `
-          }
-        `;
-      }
-
-      function renderResultTable(data) {
-        const tbody = document.getElementById("resultBody");
-        const emptyState = document.getElementById("emptyState");
-        const countEl = document.getElementById("resultCount");
-        tbody.innerHTML = "";
-
-        if (!data || data.length === 0) {
-          emptyState.classList.remove("hidden");
-          countEl.textContent = "0 records";
-          document
-            .getElementById("paginationControlsResult")
-            .classList.add("hidden");
-          updateSelectAllButtonState();
-          return;
-        }
-
-        emptyState.classList.add("hidden");
-        countEl.textContent = `${formatNumber(data.length)} records`;
-
-        const pageInfo = handlePagination(data, "Result");
-        updatePaginationUI("Result", pageInfo);
-
-        pageInfo.paginatedData.forEach((item, index) => {
-          const isSelected = selectedMerchants.some((m) => m.tid === item.tid);
-          const rowNo = pageInfo.startIndex + index + 1;
-          const row = document.createElement("tr");
-          row.className = `transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${isSelected ? "bg-brand-50/50 dark:bg-brand-900/10" : "bg-white dark:bg-slate-800"}`;
-          row.innerHTML = generateTableRowHTML(
-            item,
-            rowNo,
-            isSelected,
-            "Select",
-          );
-          tbody.appendChild(row);
-        });
-
-        updateSelectAllButtonState();
-      }
-
-      function renderSelectedTable() {
-        const tbody = document.getElementById("selectedBody");
-        const emptyState = document.getElementById("selectedEmptyState");
-        const countEl = document.getElementById("selectedCount");
-        tbody.innerHTML = "";
-
-        if (selectedMerchants.length === 0) {
-          emptyState.classList.remove("hidden");
-          countEl.textContent = "0 selected";
-          const controlPanel = document.getElementById(
-            "paginationControlsSelected",
-          );
-          if (controlPanel) controlPanel.classList.add("hidden");
-          updateTotals();
-          return;
-        }
-
-        emptyState.classList.add("hidden");
-        countEl.textContent = `${selectedMerchants.length} selected`;
-
-        const dataToRender = applySort(selectedMerchants, sortConfigs.selected);
-        const pageInfo = handlePagination(dataToRender, "Selected");
-        updatePaginationUI("Selected", pageInfo);
-
-        pageInfo.paginatedData.forEach((item, index) => {
-          const rowNo = pageInfo.startIndex + index + 1;
-          const row = document.createElement("tr");
-          row.className =
-            "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
-          row.innerHTML = generateTableRowHTML(item, rowNo, false, "Remove");
-          tbody.appendChild(row);
-        });
-
-        updateTotals();
-      }
-
-      function getTop25Data() {
-        const baseData = getBaseFilteredData();
-        if (!baseData || baseData.length === 0) return [];
-        let top25 = [...baseData]
-          .sort((a, b) => a.deltaSv - b.deltaSv)
-          .slice(0, 25);
-        return applySort(top25, sortConfigs.top25);
-      }
-
-      function renderTop25Table() {
-        const tbody = document.getElementById("top25Body");
-        tbody.innerHTML = "";
-        const sortedData = getTop25Data();
-
-        if (sortedData.length === 0) {
-          const controlPanel = document.getElementById(
-            "paginationControlsTop25",
-          );
-          if (controlPanel) controlPanel.classList.add("hidden");
-          return;
-        }
-
-        const pageInfo = handlePagination(sortedData, "Top25");
-        updatePaginationUI("Top25", pageInfo);
-
-        pageInfo.paginatedData.forEach((item, index) => {
-          const rowNo = pageInfo.startIndex + index + 1;
-          const row = document.createElement("tr");
-          row.className =
-            "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
-          row.innerHTML = generateTableRowHTML(item, rowNo, false, "Top25");
-          tbody.appendChild(row);
-        });
-      }
-
-      // ==========================================
-      // CHART RENDER & THEME MANAGEMENT
-      // ==========================================
-      function downloadChart(canvasId, filename) {
-        const canvas = document.getElementById(canvasId);
-        const newCanvas = document.createElement("canvas");
-        newCanvas.width = canvas.width;
-        newCanvas.height = canvas.height;
-        const ctx = newCanvas.getContext("2d");
-
-        // Set background yang tepat berdasarkan tema saat ini agar hasil download tidak hitam
-        const isDark = document.documentElement.classList.contains("dark");
-        ctx.fillStyle = isDark ? "#1e293b" : "#ffffff";
-        ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
-        ctx.drawImage(canvas, 0, 0);
-
-        const link = document.createElement("a");
-        link.download = filename;
-        link.href = newCanvas.toDataURL("image/png", 1.0);
-        link.click();
-      }
-
-      // Memastikan warna Chart menyesuaikan mode Terang/Gelap
-      function getChartThemeColors() {
-        const isDark = document.documentElement.classList.contains("dark");
-        return {
-          textColor: isDark ? "#cbd5e1" : "#475569",
-          gridColor: isDark ? "#334155" : "#e2e8f0",
-          dataLabelColor: isDark ? "#f8fafc" : "#475569",
-        };
-      }
-
-      function updateChartsTheme() {
-        if (branchChartInstance) {
-          const colors = getChartThemeColors();
-          branchChartInstance.options.scales.x.grid.color = colors.gridColor;
-          branchChartInstance.options.scales.y.grid.color = colors.gridColor;
-          branchChartInstance.options.scales.x.ticks.color = colors.textColor;
-          branchChartInstance.options.scales.y.ticks.color = colors.textColor;
-          branchChartInstance.options.plugins.datalabels.color =
-            colors.dataLabelColor;
-          branchChartInstance.update();
-        }
-        if (productivityChartInstance) {
-          const colors = getChartThemeColors();
-          productivityChartInstance.options.scales.x.grid.color =
-            colors.gridColor;
-          productivityChartInstance.options.scales.y.grid.color =
-            colors.gridColor;
-          productivityChartInstance.options.scales.x.ticks.color =
-            colors.textColor;
-          productivityChartInstance.options.scales.y.ticks.color =
-            colors.textColor;
-          productivityChartInstance.options.plugins.datalabels.color =
-            colors.dataLabelColor;
-          productivityChartInstance.update();
-        }
-        if (overallProductivityChartInstance) {
-          overallProductivityChartInstance.options.plugins.datalabels.color =
-            "#ffffff"; // Donut selalu putih textnya karena backgroun solid
-          overallProductivityChartInstance.options.plugins.legend.labels.color =
-            getChartThemeColors().textColor;
-          overallProductivityChartInstance.update();
-        }
-      }
-
-      function renderCharts(data) {
-        if (branchChartInstance) branchChartInstance.destroy();
-        if (productivityChartInstance) productivityChartInstance.destroy();
-        if (overallProductivityChartInstance)
-          overallProductivityChartInstance.destroy();
-
-        if (!data || data.length === 0) return;
-
-        const colors = getChartThemeColors();
-
-        // CHART 1: Branch Delta SV
-        const branchDataMap = {};
-        data.forEach((item) => {
-          if (!branchDataMap[item.namaKanca]) branchDataMap[item.namaKanca] = 0;
-          branchDataMap[item.namaKanca] += item.deltaSv;
-        });
-
-        const sortedBranches = Object.keys(branchDataMap)
-          .map((kanca) => ({
-            kanca,
-            delta: Math.round(branchDataMap[kanca] / 1000000),
-          }))
-          .sort((a, b) => b.delta - a.delta);
-
-        const ctxBranch = document
-          .getElementById("branchChart")
-          .getContext("2d");
-        branchChartInstance = new Chart(ctxBranch, {
-          type: "bar",
-          data: {
-            labels: sortedBranches.map((b) => b.kanca),
-            datasets: [
-              {
-                label: "Delta SV (Juta)",
-                data: sortedBranches.map((b) => b.delta),
-                backgroundColor: sortedBranches.map((b) =>
-                  b.delta < 0
-                    ? "rgba(239, 68, 68, 0.85)"
-                    : "rgba(16, 185, 129, 0.85)",
-                ),
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            indexAxis: "y",
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: { left: 10, right: 50 } },
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: "Juta Rupiah",
-                  color: colors.textColor,
-                },
-                grid: { color: colors.gridColor },
-                ticks: { color: colors.textColor },
-              },
-              y: {
-                grid: { display: false },
-                ticks: {
-                  autoSkip: false,
-                  color: colors.textColor,
-                  font: { size: 11 },
-                },
-              },
-            },
-            plugins: {
-              legend: { display: false },
-              datalabels: {
-                display: true,
-                color: colors.dataLabelColor,
-                anchor: "end",
-                align: "end",
-                font: { weight: "600", size: 10 },
-                formatter: (value) => {
-                  const formatted = value.toLocaleString("id-ID");
-                  return value > 0
-                    ? "+" + formatted + " Jt"
-                    : formatted + " Jt";
-                },
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    const val = context.raw;
-                    return val > 0
-                      ? " +" + val.toLocaleString("id-ID") + " Jt"
-                      : " " + val.toLocaleString("id-ID") + " Jt";
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        // CHART 2: Donut Produktivitas
-        const productiveCount = data.filter(
-          (item) => item.svUpdate >= 15000000,
-        ).length;
-        const totalCount = data.length;
-        const nonProductiveCount = totalCount - productiveCount;
-
-        const ctxOverall = document
-          .getElementById("overallProductivityChart")
-          .getContext("2d");
-        overallProductivityChartInstance = new Chart(ctxOverall, {
-          type: "doughnut",
-          data: {
-            labels: ["Produktif (≥15 Jt)", "Non-Produktif (<15 Jt)"],
-            datasets: [
-              {
-                data: [productiveCount, nonProductiveCount],
-                backgroundColor: [
-                  "rgba(16, 185, 129, 0.9)",
-                  "rgba(244, 63, 94, 0.9)",
-                ],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "65%",
-            plugins: {
-              legend: {
-                position: "bottom",
-                labels: {
-                  boxWidth: 10,
-                  font: { size: 11 },
-                  color: colors.textColor,
-                  padding: 20,
-                },
-              },
-              datalabels: {
-                color: "#ffffff",
-                font: { weight: "bold", size: 11 },
-                formatter: (value) => {
-                  if (value === 0) return null;
-                  const percentage =
-                    totalCount > 0
-                      ? ((value / totalCount) * 100).toFixed(0) + "%"
-                      : "0%";
-                  return `${percentage}`;
-                },
-                textAlign: "center",
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    const value = context.raw;
-                    const percent =
-                      totalCount > 0
-                        ? ((value / totalCount) * 100).toFixed(1)
-                        : 0;
-                    return ` ${context.label}: ${value.toLocaleString("id-ID")} (${percent}%)`;
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        // CHART 3: Bar Produktivitas per Kanca
-        const productivityMap = {};
-        data.forEach((item) => {
-          const kanca = item.namaKanca;
-          if (!productivityMap[kanca])
-            productivityMap[kanca] = { total: 0, productive: 0 };
-          productivityMap[kanca].total += 1;
-          if (item.svUpdate >= 15000000) productivityMap[kanca].productive += 1;
-        });
-
-        const sortedProductivity = Object.keys(productivityMap)
-          .map((kanca) => {
-            const stats = productivityMap[kanca];
-            const percentage =
-              stats.total > 0 ? (stats.productive / stats.total) * 100 : 0;
-            return {
-              kanca,
-              percentage: parseFloat(percentage.toFixed(2)),
-              productive: stats.productive,
-              total: stats.total,
-            };
-          })
-          .sort((a, b) => b.percentage - a.percentage);
-
-        const prodDetails = sortedProductivity.map((p) => ({
-          prod: p.productive,
-          tot: p.total,
-        }));
-
-        const ctxProd = document
-          .getElementById("productivityChart")
-          .getContext("2d");
-        productivityChartInstance = new Chart(ctxProd, {
-          type: "bar",
-          data: {
-            labels: sortedProductivity.map((p) => p.kanca),
-            datasets: [
-              {
-                label: "% Produktivitas",
-                data: sortedProductivity.map((p) => p.percentage),
-                backgroundColor: "rgba(14, 165, 233, 0.85)", // brand-500
-                borderRadius: 4,
-                barPercentage: 0.6,
-              },
-            ],
-          },
-          options: {
-            indexAxis: "y",
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: { right: 80 } },
-            scales: {
-              x: {
-                beginAtZero: true,
-                max: 100,
-                title: {
-                  display: true,
-                  text: "Persentase (%)",
-                  color: colors.textColor,
-                },
-                grid: { color: colors.gridColor },
-                ticks: { color: colors.textColor },
-              },
-              y: {
-                grid: { display: false },
-                ticks: {
-                  autoSkip: false,
-                  color: colors.textColor,
-                  font: { size: 11 },
-                },
-              },
-            },
-            plugins: {
-              legend: { display: false },
-              datalabels: {
-                color: colors.dataLabelColor,
-                anchor: "end",
-                align: "right",
-                font: { size: 10, weight: "600" },
-                formatter: (value, ctx) => {
-                  const detail = prodDetails[ctx.dataIndex];
-                  return `${value}% (${detail.prod}/${detail.tot})`;
-                },
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    const detail = prodDetails[context.dataIndex];
-                    return ` ${context.raw}% (${detail.prod.toLocaleString("id-ID")} / ${detail.tot.toLocaleString("id-ID")} Merchant)`;
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
-
-      // ==========================================
-      // SELECTION & TOTALS
-      // ==========================================
-      function updateTotals() {
-        let totalDeltaTrx = 0;
-        let totalDeltaSv = 0;
-
-        selectedMerchants.forEach((item) => {
-          totalDeltaTrx += item.deltaTrx;
-          totalDeltaSv += item.deltaSv;
-        });
-
-        const trxEl = document.getElementById("totalTrx");
-        const svEl = document.getElementById("totalSv");
-
-        trxEl.className =
-          "text-2xl font-bold mt-2 transition-colors duration-300";
-        svEl.className =
-          "text-2xl font-bold mt-2 transition-colors duration-300";
-
-        if (totalDeltaTrx > 0)
-          trxEl.classList.add("text-emerald-600", "dark:text-emerald-400");
-        else if (totalDeltaTrx < 0)
-          trxEl.classList.add("text-red-600", "dark:text-red-400");
-        else trxEl.classList.add("text-slate-800", "dark:text-white");
-
-        if (totalDeltaSv > 0)
-          svEl.classList.add("text-emerald-600", "dark:text-emerald-400");
-        else if (totalDeltaSv < 0)
-          svEl.classList.add("text-red-600", "dark:text-red-400");
-        else svEl.classList.add("text-slate-800", "dark:text-white");
-
-        animateValue(
-          trxEl,
-          prevTotalTrx,
-          totalDeltaTrx,
-          800,
-          formatNumber,
-          getDeltaPrefix(totalDeltaTrx),
-        );
-        animateValue(
-          svEl,
-          prevTotalSv,
-          totalDeltaSv,
-          800,
-          formatCurrency,
-          getDeltaPrefix(totalDeltaSv),
-        );
-
-        prevTotalTrx = totalDeltaTrx;
-        prevTotalSv = totalDeltaSv;
-      }
-
-      function toggleSelectAll() {
-        const currentData = getFilteredData();
-        if (currentData.length === 0) return;
-
-        const allSelected = currentData.every((item) =>
-          selectedMerchants.some((m) => m.tid === item.tid),
-        );
-
-        if (allSelected) {
-          const currentTids = currentData.map((item) => item.tid);
-          selectedMerchants = selectedMerchants.filter(
-            (m) => !currentTids.includes(m.tid),
-          );
-          addActivityLog(
-            `Membatalkan pilihan (Unselect All) ${currentData.length} merchant`,
-          );
-        } else {
-          currentData.forEach((item) => {
-            if (!selectedMerchants.some((m) => m.tid === item.tid))
-              selectedMerchants.push(item);
-          });
-          addActivityLog(
-            `Memilih semua (Select All) ${currentData.length} merchant`,
-          );
-        }
-
-        renderResultTable(currentData);
-        renderSelectedTable();
-      }
-
-      function updateSelectAllButtonState() {
-        const btn = document.getElementById("btnSelectAllToggle");
-        if (!btn) return;
-        const currentData = getFilteredData();
-        btn.className =
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm";
-
-        if (currentData.length === 0) {
-          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
-          btn.classList.add(
-            "bg-slate-100",
-            "text-slate-400",
-            "border",
-            "border-slate-200",
-            "dark:bg-slate-800",
-            "dark:border-slate-700",
-            "cursor-not-allowed",
-            "opacity-50",
-          );
-          btn.disabled = true;
-          return;
-        }
-
-        btn.disabled = false;
-        const allSelected = currentData.every((item) =>
-          selectedMerchants.some((m) => m.tid === item.tid),
-        );
-
-        if (allSelected) {
-          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Unselect All`;
-          btn.classList.add(
-            "bg-amber-50",
-            "text-amber-700",
-            "border-amber-200",
-            "hover:bg-amber-100",
-            "dark:bg-amber-900/20",
-            "dark:text-amber-400",
-            "dark:border-amber-800/50",
-          );
-        } else {
-          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Select All`;
-          btn.classList.add(
-            "bg-brand-50",
-            "text-brand-700",
-            "border-brand-200",
-            "hover:bg-brand-100",
-            "dark:bg-brand-900/20",
-            "dark:text-brand-400",
-            "dark:border-brand-800/50",
-          );
-        }
-      }
-
-      function selectMerchant(tid) {
-        const merchant = merchantData.find((m) => m.tid === tid);
-        if (merchant && !selectedMerchants.some((m) => m.tid === tid)) {
-          selectedMerchants.push(merchant);
-          addActivityLog(`Menambahkan merchant ${merchant.nama} ke Selected`);
-          renderResultTable(getFilteredData());
-          renderSelectedTable();
-        }
-      }
-
-      function removeMerchant(tid) {
-        const merchant = selectedMerchants.find((m) => m.tid === tid);
-        selectedMerchants = selectedMerchants.filter((m) => m.tid !== tid);
-        if (merchant)
-          addActivityLog(
-            `Menghapus merchant ${merchant.nama} dari list Selected`,
-          );
-        renderResultTable(getFilteredData());
-        renderSelectedTable();
-      }
-
-      function clearSelected() {
-        if (selectedMerchants.length > 0) {
-          selectedMerchants = [];
-          addActivityLog(`Membersihkan semua list Selected Merchants`);
-          renderResultTable(getFilteredData());
-          renderSelectedTable();
-        }
-      }
-
-      function getBaseFilteredData() {
-        const searchTerm = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        const searchCategory = document.getElementById("searchCategory").value;
-        const svFilterType = document.getElementById("svFilterType").value;
-        const svFilterValueRaw = document.getElementById("svFilterValue").value;
-        const svFilterValue = parseFloat(svFilterValueRaw);
-
-        let filtered = merchantData;
-
-        // Terapkan Filter Teks
-        if (searchTerm) {
-          filtered = filtered.filter((item) => {
-            if (searchCategory === "all") {
-              return (
-                item.kodeKanca.toLowerCase().includes(searchTerm) ||
-                item.namaKanca.toLowerCase().includes(searchTerm) ||
-                item.kodeUker.toLowerCase().includes(searchTerm) ||
-                item.uker.toLowerCase().includes(searchTerm) ||
-                item.tid.toLowerCase().includes(searchTerm) ||
-                item.mid.toLowerCase().includes(searchTerm) ||
-                item.nama.toLowerCase().includes(searchTerm) ||
-                item.pn.toLowerCase().includes(searchTerm) ||
-                item.pemrakarsa.toLowerCase().includes(searchTerm)
-              );
-            } else {
-              const valueToSearch = String(
-                item[searchCategory] || "",
-              ).toLowerCase();
-              return valueToSearch.includes(searchTerm);
-            }
-          });
-        }
-
-        // Terapkan Filter SV
-        if (
-          svFilterType !== "all" &&
-          svFilterValueRaw !== "" &&
-          !isNaN(svFilterValue)
-        ) {
-          filtered = filtered.filter((item) => {
-            if (svFilterType === ">=") return item.svUpdate >= svFilterValue;
-            if (svFilterType === "<=") return item.svUpdate <= svFilterValue;
-            return true;
-          });
-        }
-
-        return filtered;
-      }
-
-      function getFilteredData() {
-        const baseFiltered = getBaseFilteredData();
-        return applySort(baseFiltered, sortConfigs.result);
-      }
-
-      let searchTimeout;
-      function searchMerchant() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          pagination.Result.current = 1;
-          pagination.Top25.current = 1;
-          renderResultTable(getFilteredData());
-          renderCharts(getBaseFilteredData());
-          renderTop25Table();
-        }, 300);
-      }
-
-      function clearSearch() {
-        document.getElementById("searchInput").value = "";
-        document.getElementById("searchCategory").value = "all";
-        document.getElementById("svFilterType").value = "all";
-        document.getElementById("svFilterValue").value = "";
-
-        pagination.Result.current = 1;
-        pagination.Top25.current = 1;
-        addActivityLog("Membersihkan semua filter pencarian");
-
-        renderResultTable(getFilteredData());
-        renderCharts(getBaseFilteredData());
-        renderTop25Table();
-      }
-
-      function setCurrentDate(dateObj) {
-        const now =
-          dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
-        const options = {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        };
-        document.getElementById("dataTanggal").textContent =
-          now.toLocaleDateString("id-ID", options);
-      }
-
-      window.onload = () => {
-        document.getElementById("dataTanggal").textContent = "Memuat...";
-        addActivityLog("Dashboard dimuat, mengambil data dari server...");
-        fetchSheetData();
-        initVisitorCount();
-      };
-
-      // ==========================================
-      // EXPORT FUNCTIONS
-      // ==========================================
-      function convertToCSV(objArray) {
-        const array =
-          typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
-        if (!array || !array.length) return "";
-        const headers = [
-          "No",
-          "Kode Kanca",
-          "Nama Kanca",
-          "Kode Uker",
-          "Nama Uker",
-          "TID",
-          "MID",
-          "Nama Merchant",
-          "PN",
-          "Pemrakarsa",
-          "Trx MOM",
-          "SV MOM",
-          "Trx Update",
-          "SV Update",
-          "Delta Trx",
-          "Delta SV",
-        ];
-        const keys = [
-          "kodeKanca",
-          "namaKanca",
-          "kodeUker",
-          "uker",
-          "tid",
-          "mid",
-          "nama",
-          "pn",
-          "pemrakarsa",
-          "trxLalu",
-          "svLalu",
-          "trxUpdate",
-          "svUpdate",
-        ];
-        let str = headers.join(",") + "\r\n";
-        for (let i = 0; i < array.length; i++) {
-          let line = `${i + 1},`;
-          for (let index in keys) {
-            let value = array[i][keys[index]];
-            if (typeof value === "string") {
-              value = value.replace(/"/g, '""');
-              if (value.includes(",")) value = `"${value}"`;
-            }
-            line += value + ",";
-          }
-          line += `${array[i].deltaTrx},${array[i].deltaSv}`;
-          str += line + "\r\n";
-        }
-        return str;
-      }
-
-      function downloadCSV(csv, filename) {
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute("download", filename);
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      }
-
-      function downloadMerchantDataCSV() {
-        const dataToDownload = getFilteredData();
-        if (dataToDownload.length === 0) return;
-        addActivityLog("Mengunduh Report CSV All Merchant Data");
-        const csv = convertToCSV(dataToDownload);
-        downloadCSV(csv, "Report Data ALL MOM.csv");
-      }
-
-      function downloadSelectedCSV() {
-        if (selectedMerchants.length === 0) return;
-        addActivityLog("Mengunduh Report CSV Selected Merchant");
-        const csv = convertToCSV(selectedMerchants);
-        downloadCSV(csv, "Report Data MOM.csv");
-      }
-
-      function downloadTop25CSV() {
-        const data = getTop25Data();
-        if (data.length === 0) return;
-        addActivityLog("Mengunduh Report CSV Top 25 Penurunan");
-
-        const headers = [
-          "No",
-          "Nama Kanca",
-          "Nama Uker",
-          "TID",
-          "MID",
-          "Nama Merchant",
-          "Pemrakarsa",
-          "Delta SV",
-        ];
-        let str = headers.join(",") + "\r\n";
-        data.forEach((item, index) => {
-          let row = [
-            index + 1,
-            `"${item.namaKanca}"`,
-            `"${item.uker}"`,
-            `"${item.tid}"`,
-            `"${item.mid}"`,
-            `"${item.nama.replace(/"/g, '""')}"`,
-            `"${item.pemrakarsa}"`,
-            item.deltaSv,
-          ];
-          str += row.join(",") + "\r\n";
-        });
-        downloadCSV(str, "Top_25_Penurunan_SV.csv");
-      }
-
-      function downloadTop25PDF() {
-        const top25 = getTop25Data();
-        if (top25.length === 0) return;
-        addActivityLog("Mengunduh Report PDF Top 25 Penurunan");
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("landscape");
-        const lastUpdated = document.getElementById("dataTanggal").textContent;
-        const generateDate = new Date().toLocaleDateString("id-ID");
-
-        doc.setFontSize(14);
-        doc.text("Report Top 25 Penurunan SV Terdalam", 14, 15);
-        doc.setFontSize(10);
-        doc.text(`Last Updated Date: ${lastUpdated}`, 14, 22);
-        doc.text(`Generate Date: ${generateDate}`, 14, 28);
-
-        const headers = [
-          [
-            "No",
-            "Nama Kanca",
-            "Nama Uker",
-            "TID",
-            "MID",
-            "Nama Merchant",
-            "Pemrakarsa",
-            "Delta SV",
-          ],
-        ];
-        const data = top25.map((item, index) => {
-          return [
-            index + 1,
-            item.namaKanca,
-            item.uker,
-            item.tid,
-            item.mid,
-            item.nama,
-            item.pemrakarsa,
-            getDeltaPrefix(item.deltaSv) + formatCurrency(item.deltaSv),
-          ];
-        });
-
-        doc.autoTable({
-          head: headers,
-          body: data,
-          startY: 34,
-          theme: "grid",
-          styles: { fontSize: 8, cellPadding: 2 },
-          headStyles: { fillColor: [15, 23, 42] }, // Slate 900
-          didParseCell: function (data) {
-            if (data.section === "body" && data.column.index === 7) {
-              const textVal = data.cell.text[0] || "";
-              if (textVal.includes("-"))
-                data.cell.styles.textColor = [220, 38, 38];
-              else if (textVal.includes("+"))
-                data.cell.styles.textColor = [16, 185, 129];
-            }
-          },
-          didDrawPage: function (data) {
-            const pageHeight = doc.internal.pageSize.height;
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text(
-              "© BAYU DWI SUHARMINTO | IG: bayudwis_07",
-              doc.internal.pageSize.width / 2,
-              pageHeight - 5,
-              { align: "center" },
-            );
-          },
-        });
-        doc.save("Top_25_Penurunan_SV.pdf");
-      }
-
-      function downloadSelectedPDF() {
-        if (selectedMerchants.length === 0) return;
-        addActivityLog("Mengunduh Report PDF Selected Merchant");
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("landscape");
-        const lastUpdated = document.getElementById("dataTanggal").textContent;
-        const generateDate = new Date().toLocaleDateString("id-ID");
-
-        doc.setFontSize(14);
-        doc.text("Report Data EDC MOM", 14, 15);
-        doc.setFontSize(10);
-        doc.text(`Last Updated Date: ${lastUpdated}`, 14, 22);
-        doc.text(`Generate Date: ${generateDate}`, 14, 28);
-
-        const headers = [
-          [
-            "No",
-            "Kanca",
-            "Uker",
-            "TID",
-            "MID",
-            "Merchant",
-            "Pemrakarsa",
-            "Trx MOM",
-            "SV MOM",
-            "Trx Update",
-            "SV Update",
-            "Delta Trx",
-            "Delta SV",
-          ],
-        ];
-        const data = selectedMerchants.map((item, index) => {
-          return [
-            index + 1,
-            item.namaKanca,
-            item.uker,
-            item.tid,
-            item.mid,
-            item.nama,
-            item.pemrakarsa,
-            formatNumber(item.trxLalu),
-            formatCurrency(item.svLalu),
-            formatNumber(item.trxUpdate),
-            formatCurrency(item.svUpdate),
-            getDeltaPrefix(item.deltaTrx) + formatNumber(item.deltaTrx),
-            getDeltaPrefix(item.deltaSv) + formatCurrency(item.deltaSv),
-          ];
-        });
-
-        doc.autoTable({
-          head: headers,
-          body: data,
-          startY: 34,
-          theme: "grid",
-          styles: { fontSize: 7, cellPadding: 1.5 },
-          headStyles: { fillColor: [16, 185, 129] }, // Emerald
-          didParseCell: function (data) {
-            if (data.section === "body") {
-              if (data.column.index === 11 || data.column.index === 12) {
-                const textVal = data.cell.text[0] || "";
-                if (textVal.includes("-"))
-                  data.cell.styles.textColor = [220, 38, 38];
-                else if (textVal.includes("+"))
-                  data.cell.styles.textColor = [16, 185, 129];
-              }
-            }
-          },
-          didDrawPage: function (data) {
-            const pageHeight = doc.internal.pageSize.height;
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text(
-              "© BAYU DWI SUHARMINTO | IG: bayudwis_07",
-              doc.internal.pageSize.width / 2,
-              pageHeight - 5,
-              { align: "center" },
-            );
-          },
-        });
-
-        let totalDeltaTrx = 0;
-        let totalDeltaSv = 0;
-        selectedMerchants.forEach((item) => {
-          totalDeltaTrx += item.deltaTrx;
-          totalDeltaSv += item.deltaSv;
-        });
-
-        const finalY = doc.lastAutoTable.finalY || 34;
-        doc.setFontSize(10);
-        doc.setTextColor(0);
-        doc.text(
-          `Total Delta Trx: ${getDeltaPrefix(totalDeltaTrx) + formatNumber(totalDeltaTrx)}`,
-          14,
-          finalY + 10,
-        );
-        doc.text(
-          `Total Delta SV: ${getDeltaPrefix(totalDeltaSv) + formatCurrency(totalDeltaSv)}`,
-          14,
-          finalY + 16,
-        );
-
-        doc.save("Report Data MOM.pdf");
-      }
-    </script>
+    <!-- LOGOUT CONFIRMATION MODAL                  -->
+
+    <div
+      id="logoutModal"
+      class="fixed inset-0 z-[70] hidden flex items-center justify-center px-4"
+    >
+      <div
+        class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        onclick="closeLogoutModal()"
+      ></div>
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-6 relative z-10 transform scale-95 opacity-0 transition-all duration-200"
+        id="logoutModalContent"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4 mx-auto border border-red-200 dark:border-red-800"
+        >
+          <svg
+            class="w-6 h-6 text-red-600 dark:text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            ></path>
+          </svg>
+        </div>
+        <h3
+          class="text-lg font-bold text-center text-slate-800 dark:text-white mb-2"
+        >
+          Konfirmasi Keluar
+        </h3>
+        <p class="text-sm text-center text-slate-500 dark:text-slate-400 mb-6">
+          Apakah Anda yakin ingin keluar dari sistem?
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="closeLogoutModal()"
+            class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onclick="confirmLogout()"
+            class="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors shadow-sm"
+          >
+            Ya, Keluar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/script.js"></script>
   </body>
 </html>
